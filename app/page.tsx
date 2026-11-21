@@ -2,17 +2,10 @@ import { auth, signIn, signOut } from "@/auth";
 import { listPhotos, userKey } from "@/lib/photos";
 import Uploader from "./uploader";
 import Gallery from "./gallery";
+import { CHARACTERS } from "@/lib/characters";
 
 export const dynamic = "force-dynamic";
 
-const SAMPLES = [
-  { file: "dusk-ridge.svg", title: "Dusk over the ridge" },
-  { file: "morning-lake.svg", title: "Morning lake" },
-  { file: "desert-noon.svg", title: "Desert noon" },
-  { file: "northern-night.svg", title: "Northern night" },
-  { file: "spring-meadow.svg", title: "Spring meadow" },
-  { file: "foggy-pines.svg", title: "Foggy pines" },
-];
 
 function GoogleIcon() {
   return (
@@ -36,7 +29,7 @@ export default async function Home() {
       <header>
         <div>
           <h1>Shared Photo Wall</h1>
-          <p className="sub">Sign in with Google and add your photos. Everyone who visits sees them.</p>
+          <p className="sub">Meet the crew, then sign in with Google and add your own photos.</p>
         </div>
         <div className="who">
           {session?.user ? (
@@ -63,17 +56,31 @@ export default async function Home() {
       </section>
 
       <section>
-        <p className="label">Sample images</p>
-        <div className="grid">
-          {SAMPLES.map((s) => (
-            <figure key={s.file}>
-              <img src={`/samples/${s.file}`} alt={s.title} loading="lazy" />
-              <figcaption>
-                <span className="name">{s.title}</span>
-                <span className="tag">Sample</span>
-              </figcaption>
-            </figure>
+        <p className="label">Meet the characters</p>
+        <ul className="cast">
+          {CHARACTERS.map((c) => (
+            <li key={c.id}>
+              <img src={`/characters/${c.photos[0].file}`} alt="" />
+              <div>
+                <strong>{c.name}</strong>
+                <span>{c.bio}</span>
+              </div>
+            </li>
           ))}
+        </ul>
+        <div className="grid">
+          {CHARACTERS.flatMap((c) =>
+            c.photos.map((p) => (
+              <figure key={p.file}>
+                <img src={`/characters/${p.file}`} alt={`${c.name}: ${p.caption}`} loading="lazy" />
+                <figcaption>
+                  <span className="dot" style={{ background: c.color }} />
+                  <span className="name">{c.name} · {p.caption}</span>
+                  <span className="tag">Sample</span>
+                </figcaption>
+              </figure>
+            )),
+          )}
         </div>
       </section>
     </main>

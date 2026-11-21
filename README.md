@@ -1,6 +1,6 @@
 # Shared Photo Wall
 
-People sign in with Google and upload photos to a shared wall. The first page shows sample images.
+People sign in with Google and upload photos to a shared wall. The first page introduces five sample characters (Miso, Bolt, Inky, Puff and Spike) with photos of each.
 
 Built with Next.js 15, Auth.js (Google sign-in) and Vercel Blob (image storage). No database needed.
 
