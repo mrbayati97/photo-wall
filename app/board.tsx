@@ -1,0 +1,396 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
+import { ALLOWED_TYPES, CATEGORIES, MAX_BYTES, slugTitle, type Pin } from "@/lib/shared";
+
+type User = { uid: string; name: string; image: string | null };
+type Props = {
+  pins: Pin[];
+  user: User | null;
+  signInAction: () => Promise<void>;
+  signOutAction: () => Promise<void>;
+};
+
+const SAVED_KEY = "photo-wall:saved";
+
+function loadSaved(): Set<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(SAVED_KEY) || "[]"));
+  } catch {
+    return new Set();
+  }
+}
+
+export default function Board({ pins, user, signInAction, signOutAction }: Props) {
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<string>("All");
+  const [saved, setSaved] = useState<Set<string>>(new Set());
+  const [open, setOpen] = useState<Pin | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [menu, setMenu] = useState(false);
+
+  useEffect(() => setSaved(loadSaved()), []);
+
+  function toggleSave(id: string) {
+    setSaved((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      try {
+        localStorage.setItem(SAVED_KEY, JSON.stringify([...next]));
+      } catch {
+        /* storage blocked: saving still works for this visit */
+      }
+      return next;
+    });
+  }
+
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return pins.filter((p) => {
+      if (filter === "Saved" && !saved.has(p.id)) return false;
+      if (filter === "Mine" && !p.mine) return false;
+      if (!["All", "Saved", "Mine"].includes(filter) && p.category !== filter) return false;
+      if (!q) return true;
+      return [p.title, p.description, p.category, p.author.name].some((t) => t?.toLowerCase().includes(q));
+    });
+  }, [pins, query, filter, saved]);
+
+  const chips = ["All", ...CATEGORIES, "Saved", ...(user ? ["Mine"] : [])];
+
+  return (
+    <>
+      <header className="topbar">
+        <a className="brand" href="/" aria-label="Photo Wall home">
+          <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
+            <rect x="2" y="2" width="12" height="17" rx="4" fill="var(--accent)" />
+            <rect x="18" y="2" width="12" height="11" rx="4" fill="var(--ink)" />
+            <rect x="2" y="23" width="12" height="7" rx="3.5" fill="var(--ink)" />
+            <rect x="18" y="17" width="12" height="13" rx="4" fill="var(--accent-soft)" />
+          </svg>
+          <span>Photo Wall</span>
+        </a>
+
+        <label className="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2.4" />
+            <path d="M20 20l-4-4" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+          </svg>
+          <input
+            id="search"
+            type="search"
+            placeholder="Search pins, people, topics"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+
+        <div className="actions">
+          {user ? (
+            <>
+              <button className="btn primary" type="button" onClick={() => setCreating(true)}>
+                <span aria-hidden="true">+</span> Create
+              </button>
+              <div className="me">
+                <button className="avatar-btn" type="button" aria-label="Account menu" onClick={() => setMenu((m) => !m)}>
+                  {user.image ? (
+                    <img src={user.image} alt="" referrerPolicy="no-referrer" />
+                  ) : (
+                    <span>{user.name.slice(0, 1).toUpperCase()}</span>
+                  )}
+                </button>
+                {menu && (
+                  <div className="menu" role="menu">
+                    <p className="menu-name">{user.name}</p>
+                    <button type="button" role="menuitem" onClick={() => { setFilter("Mine"); setMenu(false); }}>
+                      My pins
+                    </button>
+                    <button type="button" role="menuitem" onClick={() => { setFilter("Saved"); setMenu(false); }}>
+                      Saved pins
+                    </button>
+                    <form action={signOutAction}>
+                      <button type="submit" role="menuitem">Sign out</button>
+                    </form>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <form action={signInAction}>
+              <button className="btn google" type="submit">
+                <GoogleIcon /> Sign in with Google
+              </button>
+            </form>
+          )}
+        </div>
+      </header>
+
+      <nav className="chips" aria-label="Categories">
+        {chips.map((c) => (
+          <button
+            key={c}
+            type="button"
+            className={`chip${filter === c ? " on" : ""}`}
+            aria-pressed={filter === c}
+            onClick={() => setFilter(c)}
+          >
+            {c}
+            {c === "Saved" && saved.size > 0 && <span className="count">{saved.size}</span>}
+          </button>
+        ))}
+      </nav>
+
+      <main className="board">
+        {shown.length ? (
+          <div className="masonry">
+            {shown.map((p) => (
+              <PinCard key={p.id} pin={p} saved={saved.has(p.id)} onSave={() => toggleSave(p.id)} onOpen={() => setOpen(p)} />
+            ))}
+          </div>
+        ) : (
+          <div className="empty">
+            <strong>{filter === "Saved" ? "No saved pins yet" : filter === "Mine" ? "You haven't posted yet" : "No pins found"}</strong>
+            <p>
+              {filter === "Saved"
+                ? "Tap Save on any pin to keep it here."
+                : filter === "Mine"
+                  ? "Use Create to share your first photo."
+                  : "Try a different word or category."}
+            </p>
+          </div>
+        )}
+      </main>
+
+      {open && (
+        <PinView
+          pin={open}
+          related={pins.filter((p) => p.category === open.category && p.id !== open.id).slice(0, 6)}
+          saved={saved.has(open.id)}
+          onSave={() => toggleSave(open.id)}
+          onOpen={setOpen}
+          onClose={() => setOpen(null)}
+        />
+      )}
+      {creating && user && <CreatePin uid={user.uid} onClose={() => setCreating(false)} />}
+    </>
+  );
+}
+
+function PinCard({ pin, saved, onSave, onOpen }: { pin: Pin; saved: boolean; onSave: () => void; onOpen: () => void }) {
+  return (
+    <article className="pin">
+      <div className="pin-media">
+        <button className="pin-open" type="button" onClick={onOpen} aria-label={`Open pin: ${pin.title}`}>
+          <img src={pin.src} alt={pin.title} width={pin.width} height={pin.height} loading="lazy" />
+        </button>
+        <span className="pin-cat">{pin.category}</span>
+        <button className={`save${saved ? " saved" : ""}`} type="button" onClick={onSave}>
+          {saved ? "Saved" : "Save"}
+        </button>
+      </div>
+      <div className="pin-meta">
+        <p className="pin-title">{pin.title}</p>
+        <p className="pin-author">
+          <Avatar src={pin.author.avatar} name={pin.author.name} size={24} />
+          <span>{pin.author.name}</span>
+          {pin.sample && <span className="badge">Sample</span>}
+        </p>
+      </div>
+    </article>
+  );
+}
+
+function PinView({
+  pin, related, saved, onSave, onOpen, onClose,
+}: { pin: Pin; related: Pin[]; saved: boolean; onSave: () => void; onOpen: (p: Pin) => void; onClose: () => void }) {
+  const router = useRouter();
+  const [confirm, setConfirm] = useState(false);
+  const [err, setErr] = useState("");
+  useModal(onClose);
+
+  async function remove() {
+    if (!confirm) return setConfirm(true);
+    setErr("");
+    const res = await fetch("/api/photos", {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ url: pin.src }),
+    });
+    if (!res.ok) return setErr("Couldn't delete this pin. Try again.");
+    onClose();
+    router.refresh();
+  }
+
+  return (
+    <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="sheet" role="dialog" aria-modal="true" aria-label={pin.title}>
+        <button className="close" type="button" onClick={onClose} aria-label="Close">×</button>
+        <div className="sheet-img">
+          <img src={pin.src} alt={pin.title} />
+        </div>
+        <div className="sheet-info">
+          <div className="sheet-actions">
+            <span className="chip static">{pin.category}</span>
+            <div className="row">
+              {pin.mine && (
+                <button className="btn ghost" type="button" onClick={remove}>
+                  {confirm ? "Confirm delete" : "Delete"}
+                </button>
+              )}
+              <button className={`btn ${saved ? "dark" : "primary"}`} type="button" onClick={onSave}>
+                {saved ? "Saved" : "Save"}
+              </button>
+            </div>
+          </div>
+          {err && <p className="error">{err}</p>}
+          <h2>{pin.title}</h2>
+          {pin.description && <p className="desc">{pin.description}</p>}
+          <div className="author">
+            <Avatar src={pin.author.avatar} name={pin.author.name} size={48} />
+            <div>
+              <strong>{pin.author.name}</strong>
+              {pin.author.bio && <span>{pin.author.bio}</span>}
+              {pin.sample && <span className="badge">Illustrated sample</span>}
+            </div>
+          </div>
+          {related.length > 0 && (
+            <>
+              <p className="more">More in {pin.category}</p>
+              <div className="related">
+                {related.map((r) => (
+                  <button key={r.id} type="button" onClick={() => onOpen(r)} aria-label={`Open pin: ${r.title}`}>
+                    <img src={r.src} alt="" loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CreatePin({ uid, onClose }: { uid: string; onClose: () => void }) {
+  const router = useRouter();
+  const input = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState<string>(CATEGORIES[0]);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState("");
+  const [over, setOver] = useState(false);
+  useModal(onClose);
+
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+
+  function pick(f: File | undefined) {
+    if (!f) return;
+    if (!ALLOWED_TYPES.includes(f.type)) return setStatus("Pick a PNG, JPG, GIF or WebP image.");
+    if (f.size > MAX_BYTES) return setStatus("That image is over 20 MB. Pick a smaller one.");
+    setStatus("");
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+    if (!title) setTitle(f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 60));
+  }
+
+  async function publish(e: React.FormEvent) {
+    e.preventDefault();
+    if (!file) return setStatus("Add an image first.");
+    setBusy(true);
+    setStatus("Uploading…");
+    try {
+      const ext = file.type.split("/")[1].replace("jpeg", "jpg");
+      await upload(`photos/${uid}/${category}/${slugTitle(title)}.${ext}`, file, {
+        access: "public",
+        handleUploadUrl: "/api/upload",
+      });
+      setStatus("Published.");
+      router.refresh();
+      onClose();
+    } catch (err) {
+      setStatus(`Couldn't publish: ${(err as Error).message}`);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && !busy && onClose()}>
+      <form className="sheet create" role="dialog" aria-modal="true" aria-label="Create pin" onSubmit={publish}>
+        <button className="close" type="button" onClick={onClose} aria-label="Close" disabled={busy}>×</button>
+        <div
+          className={`dropzone${over ? " over" : ""}${preview ? " has" : ""}`}
+          onDragOver={(e) => { e.preventDefault(); setOver(true); }}
+          onDragLeave={() => setOver(false)}
+          onDrop={(e) => { e.preventDefault(); setOver(false); pick(e.dataTransfer.files[0]); }}
+          onPaste={(e) => pick(e.clipboardData.files[0])}
+          onClick={() => input.current?.click()}
+          onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && input.current?.click()}
+          role="button"
+          tabIndex={0}
+          aria-label="Choose an image"
+        >
+          {preview ? (
+            <img src={preview} alt="Preview of your pin" />
+          ) : (
+            <div>
+              <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0l-5 5m5-5l5 5M5 20h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              <strong>Choose an image or drag it here</strong>
+              <span>PNG, JPG, GIF or WebP, up to 20 MB</span>
+            </div>
+          )}
+          <input ref={input} id="pin-file" type="file" accept={ALLOWED_TYPES.join(",")} hidden onChange={(e) => pick(e.target.files?.[0])} />
+        </div>
+        <div className="create-fields">
+          <h2>Create pin</h2>
+          <label htmlFor="pin-title">Title</label>
+          <input id="pin-title" type="text" maxLength={60} placeholder="Give your pin a title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <label htmlFor="pin-category">Category</label>
+          <select id="pin-category" value={category} onChange={(e) => setCategory(e.target.value)}>
+            {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+          </select>
+          <p className="hint">Everyone who visits Photo Wall can see your pin. You can delete it any time.</p>
+          <button className="btn primary wide" type="submit" disabled={busy || !file}>
+            {busy ? "Publishing…" : "Publish"}
+          </button>
+          <p className="status" role="status">{status}</p>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function useModal(onClose: () => void) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+}
+
+function Avatar({ src, name, size }: { src: string | null; name: string; size: number }) {
+  return src ? (
+    <img className="avatar" src={src} alt="" width={size} height={size} referrerPolicy="no-referrer" />
+  ) : (
+    <span className="avatar initial" style={{ width: size, height: size }}>{(name || "?").slice(0, 1).toUpperCase()}</span>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z" />
+      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z" />
+      <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z" />
+    </svg>
+  );
+}

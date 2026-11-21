@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Shared Photo Wall",
-  description: "Sign in with Google and share your photos.",
+  title: "Photo Wall",
+  description: "Discover and share photos. Sign in with Google to post your own pins.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

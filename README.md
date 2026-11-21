@@ -1,6 +1,6 @@
 # Shared Photo Wall
 
-People sign in with Google and upload photos to a shared wall. The first page introduces five sample characters (Miso, Bolt, Inky, Puff and Spike) with photos of each.
+A pin board for photos: browse a masonry grid, search, filter by category, save pins, and sign in with Google to post your own.
 
 Built with Next.js 15, Auth.js (Google sign-in) and Vercel Blob (image storage). No database needed.
 
@@ -52,6 +52,6 @@ npm run dev
 ## How it works
 - `auth.ts`: Google sign-in via Auth.js.
 - `app/api/upload`: gives signed-in users a short-lived token; the browser uploads straight to Vercel Blob (up to 20 MB, PNG/JPG/GIF/WebP).
-- Photos are stored at `photos/<user-hash>/…`; the user hash is derived from the email so emails never appear in URLs.
+- Pins are stored at `photos/<user-hash>/<Category>/<Title>-<random>.<ext>`; the title and category are read back from the path, so no database is needed. The user hash is derived from the email so emails never appear in URLs.
 - `app/api/photos` (DELETE): users can delete only their own photos.
 - Note: uploaded image URLs are public, so anyone with a link can view a photo.
