@@ -2,35 +2,68 @@
   "people": {
     "leila": {
       "name": "Leila Haddad",
-      "bio": "Bakes bread at dawn, drinks coffee by noon."
+      "bio": "Bakes bread at dawn, drinks coffee by noon.",
+      "avatar": "/avatars/leila.svg"
     },
     "kofi": {
       "name": "Kofi Mensah",
-      "bio": "Travel photographer chasing golden hour."
+      "bio": "Travel photographer chasing golden hour.",
+      "avatar": "/avatars/kofi.svg"
     },
     "mei": {
       "name": "Mei Tanaka",
-      "bio": "Painter. Mostly blues, sometimes coffee stains."
+      "bio": "Painter. Mostly blues, sometimes coffee stains.",
+      "avatar": "/avatars/mei.svg"
     },
     "diego": {
       "name": "Diego Alvarez",
-      "bio": "Surfs at sunrise, plays guitar at sunset."
+      "bio": "Surfs at sunrise, plays guitar at sunset.",
+      "avatar": "/avatars/diego.svg"
     },
     "amara": {
       "name": "Amara Okafor",
-      "bio": "Collects wildflowers and summer fair tickets."
+      "bio": "Collects wildflowers and summer fair tickets.",
+      "avatar": "/avatars/amara.svg"
     },
     "sam": {
       "name": "Sam Rivers",
-      "bio": "Songwriter with a stack of half-read books."
+      "bio": "Songwriter with a stack of half-read books.",
+      "avatar": "/avatars/sam.svg"
     },
     "noor": {
       "name": "Noor Rahman",
-      "bio": "Plant parent of 43 and counting."
+      "bio": "Plant parent of 43 and counting.",
+      "avatar": "/avatars/noor.svg"
     },
     "oskar": {
       "name": "Oskar Lind",
-      "bio": "Coffee nerd. Reads by the window."
+      "bio": "Coffee nerd. Reads by the window.",
+      "avatar": "/avatars/oskar.svg"
+    },
+    "priya": {
+      "name": "Priya Nair",
+      "bio": "Fashion student who sews her own evening wear.",
+      "avatar": "/avatars/priya.webp"
+    },
+    "zuri": {
+      "name": "Zuri Adeyemi",
+      "bio": "Dancer. Collects red dresses and late-night playlists.",
+      "avatar": "/avatars/zuri.webp"
+    },
+    "hana": {
+      "name": "Hana Seo",
+      "bio": "Architect with a soft spot for clean lines.",
+      "avatar": "/avatars/hana.webp"
+    },
+    "lucia": {
+      "name": "Lucía Moreno",
+      "bio": "Restaurant owner. Black never goes out of style.",
+      "avatar": "/avatars/lucia.webp"
+    },
+    "grace": {
+      "name": "Grace Thompson",
+      "bio": "School principal, proud mum, champagne enthusiast.",
+      "avatar": "/avatars/grace.webp"
     }
   },
   "pins": [
@@ -51,6 +84,16 @@
       "description": "Twenty minutes of perfect light on the coast.",
       "width": 800,
       "height": 1000
+    },
+    {
+      "file": "priya-gown.webp",
+      "person": "priya",
+      "title": "Emerald evening",
+      "category": "Style",
+      "description": "Finished the drape on this green satin gown the night before the show.",
+      "width": 900,
+      "height": 1350,
+      "aiGenerated": true
     },
     {
       "file": "mei-03.svg",
@@ -80,6 +123,16 @@
       "height": 1000
     },
     {
+      "file": "zuri-gown.webp",
+      "person": "zuri",
+      "title": "Ruby red for the gala",
+      "category": "Style",
+      "description": "Picked the boldest red I could find for the spring gala.",
+      "width": 900,
+      "height": 1350,
+      "aiGenerated": true
+    },
+    {
       "file": "sam-06.svg",
       "person": "sam",
       "title": "Songs under the stars",
@@ -105,6 +158,16 @@
       "description": "93°C water, 1:16 ratio, 3 minute brew.",
       "width": 800,
       "height": 900
+    },
+    {
+      "file": "hana-gown.webp",
+      "person": "hana",
+      "title": "Midnight navy",
+      "category": "Style",
+      "description": "Simple shape, one slit, no fuss. Ready for the awards dinner.",
+      "width": 900,
+      "height": 1350,
+      "aiGenerated": true
     },
     {
       "file": "leila-09.svg",
@@ -134,6 +197,16 @@
       "height": 900
     },
     {
+      "file": "lucia-gown.webp",
+      "person": "lucia",
+      "title": "The little black gown",
+      "category": "Style",
+      "description": "Opening night at the restaurant called for something classic.",
+      "width": 900,
+      "height": 1350,
+      "aiGenerated": true
+    },
+    {
       "file": "diego-12.svg",
       "person": "diego",
       "title": "Open mic night",
@@ -159,6 +232,16 @@
       "description": "Halfway through and already recommending it.",
       "width": 800,
       "height": 1000
+    },
+    {
+      "file": "grace-gown.webp",
+      "person": "grace",
+      "title": "Champagne for our anniversary",
+      "category": "Style",
+      "description": "Twenty years married, so the dress had to sparkle.",
+      "width": 900,
+      "height": 1350,
+      "aiGenerated": true
     },
     {
       "file": "noor-15.svg",

@@ -14,17 +14,12 @@ export type Pin = {
   author: { name: string; avatar: string | null; bio?: string };
   sample: boolean;
   mine: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  createdAt?: string;
+  aiGenerated?: boolean;
   width?: number;
   height?: number;
 };
 
-/** Turns a pin title into a safe file name segment. */
-export function slugTitle(title: string) {
-  return (
-    title
-      .trim()
-      .replace(/[^\p{L}\p{N} ]/gu, "")
-      .replace(/\s+/g, "-")
-      .slice(0, 60) || "Untitled"
-  );
-}
+export const LIMITS = { title: 80, description: 500 };

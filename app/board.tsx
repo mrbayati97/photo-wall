@@ -3,15 +3,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
-import { ALLOWED_TYPES, CATEGORIES, MAX_BYTES, slugTitle, type Pin } from "@/lib/shared";
+import { ALLOWED_TYPES, CATEGORIES, LIMITS, MAX_BYTES, type Pin } from "@/lib/shared";
 
-type User = { uid: string; name: string; image: string | null };
+type User = { uid: string; name: string; image: string | null; admin: boolean };
 type Props = {
   pins: Pin[];
   user: User | null;
+  canPost: boolean;
   signInAction: () => Promise<void>;
   signOutAction: () => Promise<void>;
 };
+
+async function apiError(res: Response) {
+  const body = await res.json().catch(() => ({}));
+  return (body as { error?: string }).error || "Something went wrong. Try again.";
+}
 
 const SAVED_KEY = "photo-wall:saved";
 
@@ -23,7 +29,7 @@ function loadSaved(): Set<string> {
   }
 }
 
-export default function Board({ pins, user, signInAction, signOutAction }: Props) {
+export default function Board({ pins, user, canPost, signInAction, signOutAction }: Props) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("All");
   const [saved, setSaved] = useState<Set<string>>(new Set());
@@ -54,7 +60,7 @@ export default function Board({ pins, user, signInAction, signOutAction }: Props
       if (filter === "Mine" && !p.mine) return false;
       if (!["All", "Saved", "Mine"].includes(filter) && p.category !== filter) return false;
       if (!q) return true;
-      return [p.title, p.description, p.category, p.author.name].some((t) => t?.toLowerCase().includes(q));
+      return [p.title, p.description, p.category, p.author.name, p.author.bio].some((t) => t?.toLowerCase().includes(q));
     });
   }, [pins, query, filter, saved]);
 
@@ -103,7 +109,7 @@ export default function Board({ pins, user, signInAction, signOutAction }: Props
                 </button>
                 {menu && (
                   <div className="menu" role="menu">
-                    <p className="menu-name">{user.name}</p>
+                    <p className="menu-name">{user.name}{user.admin && <span className="badge admin">Admin</span>}</p>
                     <button type="button" role="menuitem" onClick={() => { setFilter("Mine"); setMenu(false); }}>
                       My pins
                     </button>
@@ -165,7 +171,9 @@ export default function Board({ pins, user, signInAction, signOutAction }: Props
 
       {open && (
         <PinView
+          key={open.id}
           pin={open}
+          isAdmin={Boolean(user?.admin)}
           related={pins.filter((p) => p.category === open.category && p.id !== open.id).slice(0, 6)}
           saved={saved.has(open.id)}
           onSave={() => toggleSave(open.id)}
@@ -173,7 +181,7 @@ export default function Board({ pins, user, signInAction, signOutAction }: Props
           onClose={() => setOpen(null)}
         />
       )}
-      {creating && user && <CreatePin uid={user.uid} onClose={() => setCreating(false)} />}
+      {creating && user && <CreatePin uid={user.uid} canPost={canPost} onClose={() => setCreating(false)} />}
     </>
   );
 }
@@ -195,7 +203,7 @@ function PinCard({ pin, saved, onSave, onOpen }: { pin: Pin; saved: boolean; onS
         <p className="pin-author">
           <Avatar src={pin.author.avatar} name={pin.author.name} size={24} />
           <span>{pin.author.name}</span>
-          {pin.sample && <span className="badge">Sample</span>}
+          {pin.sample && <span className="badge">{pin.aiGenerated ? "AI sample" : "Sample"}</span>}
         </p>
       </div>
     </article>
@@ -203,40 +211,64 @@ function PinCard({ pin, saved, onSave, onOpen }: { pin: Pin; saved: boolean; onS
 }
 
 function PinView({
-  pin, related, saved, onSave, onOpen, onClose,
-}: { pin: Pin; related: Pin[]; saved: boolean; onSave: () => void; onOpen: (p: Pin) => void; onClose: () => void }) {
+  pin, related, saved, isAdmin, onSave, onOpen, onClose,
+}: { pin: Pin; related: Pin[]; saved: boolean; isAdmin: boolean; onSave: () => void; onOpen: (p: Pin) => void; onClose: () => void }) {
   const router = useRouter();
+  const [current, setCurrent] = useState(pin);
   const [confirm, setConfirm] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [form, setForm] = useState({ title: pin.title, description: pin.description ?? "", category: pin.category as string });
   useModal(onClose);
 
   async function remove() {
     if (!confirm) return setConfirm(true);
     setErr("");
-    const res = await fetch("/api/photos", {
-      method: "DELETE",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ url: pin.src }),
-    });
-    if (!res.ok) return setErr("Couldn't delete this pin. Try again.");
+    setBusy(true);
+    const res = await fetch(`/api/pins/${current.id}`, { method: "DELETE" });
+    setBusy(false);
+    if (!res.ok) return setErr(await apiError(res));
     onClose();
     router.refresh();
   }
 
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setErr("");
+    setBusy(true);
+    const res = await fetch(`/api/pins/${current.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    setBusy(false);
+    if (!res.ok) return setErr(await apiError(res));
+    const { pin: updated } = (await res.json()) as { pin: Pin };
+    setCurrent(updated);
+    setEditing(false);
+    router.refresh();
+  }
+
+  const adminRemoval = current.canDelete && !current.mine && isAdmin;
+
   return (
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-label={pin.title}>
+      <div className="sheet" role="dialog" aria-modal="true" aria-label={current.title}>
         <button className="close" type="button" onClick={onClose} aria-label="Close">×</button>
         <div className="sheet-img">
-          <img src={pin.src} alt={pin.title} />
+          <img src={current.src} alt={current.title} />
         </div>
         <div className="sheet-info">
           <div className="sheet-actions">
-            <span className="chip static">{pin.category}</span>
+            <span className="chip static">{current.category}</span>
             <div className="row">
-              {pin.mine && (
-                <button className="btn ghost" type="button" onClick={remove}>
-                  {confirm ? "Confirm delete" : "Delete"}
+              {current.canEdit && !editing && (
+                <button className="btn ghost" type="button" onClick={() => setEditing(true)}>Edit</button>
+              )}
+              {current.canDelete && (
+                <button className={`btn ${confirm ? "danger" : "ghost"}`} type="button" onClick={remove} disabled={busy}>
+                  {confirm ? "Confirm" : adminRemoval ? "Remove (admin)" : "Delete"}
                 </button>
               )}
               <button className={`btn ${saved ? "dark" : "primary"}`} type="button" onClick={onSave}>
@@ -244,20 +276,39 @@ function PinView({
               </button>
             </div>
           </div>
-          {err && <p className="error">{err}</p>}
-          <h2>{pin.title}</h2>
-          {pin.description && <p className="desc">{pin.description}</p>}
+          {err && <p className="error" role="alert">{err}</p>}
+          {editing ? (
+            <form className="edit" onSubmit={save}>
+              <label htmlFor="edit-title">Title</label>
+              <input id="edit-title" maxLength={LIMITS.title} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+              <label htmlFor="edit-desc">Description</label>
+              <textarea id="edit-desc" rows={3} maxLength={LIMITS.description} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              <label htmlFor="edit-cat">Category</label>
+              <select id="edit-cat" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+              </select>
+              <div className="row">
+                <button className="btn primary" type="submit" disabled={busy}>{busy ? "Saving…" : "Save changes"}</button>
+                <button className="btn ghost" type="button" onClick={() => setEditing(false)} disabled={busy}>Cancel</button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <h2>{current.title}</h2>
+              {current.description && <p className="desc">{current.description}</p>}
+            </>
+          )}
           <div className="author">
-            <Avatar src={pin.author.avatar} name={pin.author.name} size={48} />
+            <Avatar src={current.author.avatar} name={current.author.name} size={48} />
             <div>
-              <strong>{pin.author.name}</strong>
-              {pin.author.bio && <span>{pin.author.bio}</span>}
-              {pin.sample && <span className="badge">Illustrated sample</span>}
+              <strong>{current.author.name}</strong>
+              {current.author.bio && <span>{current.author.bio}</span>}
+              {current.sample && <span className="badge">{current.aiGenerated ? "AI-generated sample" : "Illustrated sample"}</span>}
             </div>
           </div>
           {related.length > 0 && (
             <>
-              <p className="more">More in {pin.category}</p>
+              <p className="more">More in {current.category}</p>
               <div className="related">
                 {related.map((r) => (
                   <button key={r.id} type="button" onClick={() => onOpen(r)} aria-label={`Open pin: ${r.title}`}>
@@ -273,15 +324,26 @@ function PinView({
   );
 }
 
-function CreatePin({ uid, onClose }: { uid: string; onClose: () => void }) {
+function readSize(file: File): Promise<{ width: number; height: number } | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { resolve({ width: img.naturalWidth, height: img.naturalHeight }); URL.revokeObjectURL(url); };
+    img.onerror = () => { resolve(null); URL.revokeObjectURL(url); };
+    img.src = url;
+  });
+}
+
+function CreatePin({ uid, canPost, onClose }: { uid: string; canPost: boolean; onClose: () => void }) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(canPost ? "" : "Posting is paused: the database isn't connected yet.");
   const [over, setOver] = useState(false);
   useModal(onClose);
 
@@ -294,21 +356,26 @@ function CreatePin({ uid, onClose }: { uid: string; onClose: () => void }) {
     setStatus("");
     setFile(f);
     setPreview(URL.createObjectURL(f));
-    if (!title) setTitle(f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, 60));
+    if (!title) setTitle(f.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").slice(0, LIMITS.title));
   }
 
   async function publish(e: React.FormEvent) {
     e.preventDefault();
     if (!file) return setStatus("Add an image first.");
+    if (!title.trim()) return setStatus("Add a title.");
     setBusy(true);
-    setStatus("Uploading…");
     try {
+      setStatus("Uploading image…");
+      const size = await readSize(file);
       const ext = file.type.split("/")[1].replace("jpeg", "jpg");
-      await upload(`photos/${uid}/${category}/${slugTitle(title)}.${ext}`, file, {
-        access: "public",
-        handleUploadUrl: "/api/upload",
+      const blob = await upload(`photos/${uid}/pin.${ext}`, file, { access: "public", handleUploadUrl: "/api/upload" });
+      setStatus("Saving pin…");
+      const res = await fetch("/api/pins", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url: blob.url, pathname: blob.pathname, title, description, category, ...size }),
       });
-      setStatus("Published.");
+      if (!res.ok) throw new Error(await apiError(res));
       router.refresh();
       onClose();
     } catch (err) {
@@ -347,13 +414,15 @@ function CreatePin({ uid, onClose }: { uid: string; onClose: () => void }) {
         <div className="create-fields">
           <h2>Create pin</h2>
           <label htmlFor="pin-title">Title</label>
-          <input id="pin-title" type="text" maxLength={60} placeholder="Give your pin a title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <input id="pin-title" type="text" maxLength={LIMITS.title} placeholder="Give your pin a title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <label htmlFor="pin-desc">Description (optional)</label>
+          <textarea id="pin-desc" rows={3} maxLength={LIMITS.description} placeholder="Tell people about it" value={description} onChange={(e) => setDescription(e.target.value)} />
           <label htmlFor="pin-category">Category</label>
           <select id="pin-category" value={category} onChange={(e) => setCategory(e.target.value)}>
             {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
           </select>
-          <p className="hint">Everyone who visits Photo Wall can see your pin. You can delete it any time.</p>
-          <button className="btn primary wide" type="submit" disabled={busy || !file}>
+          <p className="hint">Everyone who visits Photo Wall can see your pin. You can edit or delete it any time.</p>
+          <button className="btn primary wide" type="submit" disabled={busy || !file || !canPost}>
             {busy ? "Publishing…" : "Publish"}
           </button>
           <p className="status" role="status">{status}</p>

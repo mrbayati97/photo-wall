@@ -123,3 +123,9 @@ button, input, select { font: inherit; color: inherit; }
   .create-fields { padding: 16px 20px 24px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.btn.danger { background: #d1434b; color: #fff; }
+.badge.admin { margin-left: 8px; background: var(--accent); color: var(--accent-ink); }
+.edit { display: flex; flex-direction: column; gap: 6px; }
+.edit label, .create-fields label { font-size: 13px; font-weight: 600; margin-top: 6px; }
+.edit input, .edit select, .edit textarea, .create-fields textarea { border: 1px solid var(--line); background: var(--bg); border-radius: 14px; padding: 12px 14px; font: inherit; color: inherit; resize: vertical; }
+.edit .row { margin-top: 10px; }
