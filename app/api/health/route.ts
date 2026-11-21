@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ensureSchema, hasDatabase, sql } from "@/lib/db";
+import { blobMode } from "@/lib/blob-mode";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +10,7 @@ export async function GET() {
   const env = (k: string) => Boolean(process.env[k]?.trim());
   const status = {
     auth: env("AUTH_SECRET") && env("AUTH_GOOGLE_ID") && env("AUTH_GOOGLE_SECRET"),
-    blob: env("BLOB_READ_WRITE_TOKEN"),
+    blob: blobMode(),
     admins: (process.env.ADMIN_EMAILS || "").split(",").filter((e) => e.trim()).length,
     database: "missing" as "missing" | "connected" | "error",
     pins: null as number | null,

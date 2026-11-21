@@ -129,3 +129,20 @@ button, input, select { font: inherit; color: inherit; }
 .edit label, .create-fields label { font-size: 13px; font-weight: 600; margin-top: 6px; }
 .edit input, .edit select, .edit textarea, .create-fields textarea { border: 1px solid var(--line); background: var(--bg); border-radius: 14px; padding: 12px 14px; font: inherit; color: inherit; resize: vertical; }
 .edit .row { margin-top: 10px; }
+
+/* Follow + like */
+.pin-author { margin: 6px 0 0; }
+.pin-author .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; color: var(--ink); font-weight: 500; }
+.pin-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+.follow { border: 0; border-radius: 999px; padding: 6px 14px; font-weight: 700; font-size: 13px; cursor: pointer; background: var(--ink); color: var(--bg); }
+.follow.on { background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.like { margin-left: auto; border: 0; background: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; padding: 6px 8px; border-radius: 999px; color: var(--muted); font-weight: 600; font-size: 13px; font-variant-numeric: tabular-nums; }
+.like:hover { background: var(--surface); color: var(--ink); }
+.like.on { color: #e0245e; }
+.like.big { margin-left: 0; padding: 8px 12px; background: var(--surface); font-size: 14px; }
+.like.big svg { width: 20px; height: 20px; }
+@media (prefers-reduced-motion: no-preference) { .like.on svg { animation: pop .25s ease-out; } @keyframes pop { 50% { transform: scale(1.3); } } }
+.author { flex-wrap: wrap; }
+.author > div { flex: 1; min-width: 0; }
+.followers { font-size: 13px; }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60; background: var(--ink); color: var(--bg); padding: 12px 18px; border-radius: 14px; box-shadow: var(--shadow); font-size: 14px; max-width: calc(100% - 32px); }

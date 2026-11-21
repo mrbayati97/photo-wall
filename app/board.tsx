@@ -2,17 +2,28 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { upload } from "@vercel/blob/client";
+import { upload, uploadPresigned } from "@vercel/blob/client";
 import { ALLOWED_TYPES, CATEGORIES, LIMITS, MAX_BYTES, type Pin } from "@/lib/shared";
 
 type User = { uid: string; name: string; image: string | null; admin: boolean };
 type Props = {
   pins: Pin[];
   user: User | null;
+  social: boolean;
   canPost: boolean;
+  uploadMode: "token" | "presigned";
   signInAction: () => Promise<void>;
   signOutAction: () => Promise<void>;
 };
+type Count = { n: number; on: boolean };
+type Social = {
+  like: (pin: Pin) => Count;
+  follow: (pin: Pin) => Count;
+  toggleLike: (pin: Pin) => void;
+  toggleFollow: (pin: Pin) => void;
+};
+
+const fmt = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n));
 
 async function apiError(res: Response) {
   const body = await res.json().catch(() => ({}));
@@ -29,15 +40,70 @@ function loadSaved(): Set<string> {
   }
 }
 
-export default function Board({ pins, user, canPost, signInAction, signOutAction }: Props) {
+export default function Board({ pins, user, social, canPost, uploadMode, signInAction, signOutAction }: Props) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("All");
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const [open, setOpen] = useState<Pin | null>(null);
   const [creating, setCreating] = useState(false);
   const [menu, setMenu] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [likes, setLikes] = useState<Record<string, Count>>({});
+  const [follows, setFollows] = useState<Record<string, Count>>({});
 
   useEffect(() => setSaved(loadSaved()), []);
+
+  // Server counts are the starting point; refreshed whenever new pins arrive.
+  useEffect(() => {
+    setLikes(Object.fromEntries(pins.map((p) => [p.id, { n: p.likes ?? 0, on: Boolean(p.liked) }])));
+    setFollows(Object.fromEntries(pins.map((p) => [p.author.key, { n: p.followers ?? 0, on: Boolean(p.following) }])));
+  }, [pins]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(""), 3500);
+    return () => clearTimeout(t);
+  }, [notice]);
+
+  function gate(): boolean {
+    if (!user) {
+      void signInAction();
+      return false;
+    }
+    if (!social) {
+      setNotice("Likes and follows start working once the database is connected.");
+      return false;
+    }
+    return true;
+  }
+
+  async function send(url: string, body: object, revert: () => void) {
+    const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).catch(() => null);
+    if (!res?.ok) {
+      revert();
+      setNotice(res ? await apiError(res) : "You're offline. Try again.");
+    }
+  }
+
+  const soc: Social = {
+    like: (p) => likes[p.id] ?? { n: 0, on: false },
+    follow: (p) => follows[p.author.key] ?? { n: 0, on: false },
+    toggleLike(p) {
+      if (!gate()) return;
+      const prev = likes[p.id] ?? { n: 0, on: false };
+      const next = { n: Math.max(0, prev.n + (prev.on ? -1 : 1)), on: !prev.on };
+      setLikes((s) => ({ ...s, [p.id]: next }));
+      void send("/api/likes", { pinId: p.id, on: next.on }, () => setLikes((s) => ({ ...s, [p.id]: prev })));
+    },
+    toggleFollow(p) {
+      if (!gate()) return;
+      const k = p.author.key;
+      const prev = follows[k] ?? { n: 0, on: false };
+      const next = { n: Math.max(0, prev.n + (prev.on ? -1 : 1)), on: !prev.on };
+      setFollows((s) => ({ ...s, [k]: next }));
+      void send("/api/follows", { target: k, on: next.on }, () => setFollows((s) => ({ ...s, [k]: prev })));
+    },
+  };
 
   function toggleSave(id: string) {
     setSaved((prev) => {
@@ -152,7 +218,7 @@ export default function Board({ pins, user, canPost, signInAction, signOutAction
         {shown.length ? (
           <div className="masonry">
             {shown.map((p) => (
-              <PinCard key={p.id} pin={p} saved={saved.has(p.id)} onSave={() => toggleSave(p.id)} onOpen={() => setOpen(p)} />
+              <PinCard key={p.id} pin={p} soc={soc} saved={saved.has(p.id)} onSave={() => toggleSave(p.id)} onOpen={() => setOpen(p)} />
             ))}
           </div>
         ) : (
@@ -174,6 +240,7 @@ export default function Board({ pins, user, canPost, signInAction, signOutAction
           key={open.id}
           pin={open}
           isAdmin={Boolean(user?.admin)}
+          soc={soc}
           related={pins.filter((p) => p.category === open.category && p.id !== open.id).slice(0, 6)}
           saved={saved.has(open.id)}
           onSave={() => toggleSave(open.id)}
@@ -181,12 +248,59 @@ export default function Board({ pins, user, canPost, signInAction, signOutAction
           onClose={() => setOpen(null)}
         />
       )}
-      {creating && user && <CreatePin uid={user.uid} canPost={canPost} onClose={() => setCreating(false)} />}
+      {creating && user && <CreatePin uid={user.uid} canPost={canPost} uploadMode={uploadMode} onClose={() => setCreating(false)} />}
+      {notice && <div className="toast" role="status">{notice}</div>}
     </>
   );
 }
 
-function PinCard({ pin, saved, onSave, onOpen }: { pin: Pin; saved: boolean; onSave: () => void; onOpen: () => void }) {
+function HeartIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.4 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.6 0 5.6 3.5 4.3 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"
+        fill={filled ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function LikeButton({ pin, soc, big }: { pin: Pin; soc: Social; big?: boolean }) {
+  const { n, on } = soc.like(pin);
+  return (
+    <button
+      type="button"
+      className={`like${on ? " on" : ""}${big ? " big" : ""}`}
+      aria-pressed={on}
+      aria-label={`${on ? "Unlike" : "Like"} ${pin.title}${n ? `, ${n} likes` : ""}`}
+      onClick={() => soc.toggleLike(pin)}
+    >
+      <HeartIcon filled={on} />
+      <span>{fmt(n)}</span>
+    </button>
+  );
+}
+
+function FollowButton({ pin, soc }: { pin: Pin; soc: Social }) {
+  if (pin.mine) return null;
+  const { on } = soc.follow(pin);
+  return (
+    <button
+      type="button"
+      className={`follow${on ? " on" : ""}`}
+      aria-pressed={on}
+      aria-label={`${on ? "Unfollow" : "Follow"} ${pin.author.name}`}
+      onClick={() => soc.toggleFollow(pin)}
+    >
+      {on ? "Following" : "Follow"}
+    </button>
+  );
+}
+
+function PinCard({ pin, soc, saved, onSave, onOpen }: { pin: Pin; soc: Social; saved: boolean; onSave: () => void; onOpen: () => void }) {
   return (
     <article className="pin">
       <div className="pin-media">
@@ -200,19 +314,23 @@ function PinCard({ pin, saved, onSave, onOpen }: { pin: Pin; saved: boolean; onS
       </div>
       <div className="pin-meta">
         <p className="pin-title">{pin.title}</p>
-        <p className="pin-author">
+        <div className="pin-author">
           <Avatar src={pin.author.avatar} name={pin.author.name} size={24} />
-          <span>{pin.author.name}</span>
-          {pin.sample && <span className="badge">{pin.aiGenerated ? "AI sample" : "Sample"}</span>}
-        </p>
+          <span className="who">{pin.author.name}</span>
+          {pin.sample && <span className="badge">{pin.aiGenerated ? "AI" : "Sample"}</span>}
+        </div>
+        <div className="pin-actions">
+          <FollowButton pin={pin} soc={soc} />
+          <LikeButton pin={pin} soc={soc} />
+        </div>
       </div>
     </article>
   );
 }
 
 function PinView({
-  pin, related, saved, isAdmin, onSave, onOpen, onClose,
-}: { pin: Pin; related: Pin[]; saved: boolean; isAdmin: boolean; onSave: () => void; onOpen: (p: Pin) => void; onClose: () => void }) {
+  pin, related, saved, isAdmin, soc, onSave, onOpen, onClose,
+}: { pin: Pin; related: Pin[]; saved: boolean; isAdmin: boolean; soc: Social; onSave: () => void; onOpen: (p: Pin) => void; onClose: () => void }) {
   const router = useRouter();
   const [current, setCurrent] = useState(pin);
   const [confirm, setConfirm] = useState(false);
@@ -261,7 +379,10 @@ function PinView({
         </div>
         <div className="sheet-info">
           <div className="sheet-actions">
-            <span className="chip static">{current.category}</span>
+            <div className="row">
+              <span className="chip static">{current.category}</span>
+              <LikeButton pin={current} soc={soc} big />
+            </div>
             <div className="row">
               {current.canEdit && !editing && (
                 <button className="btn ghost" type="button" onClick={() => setEditing(true)}>Edit</button>
@@ -302,9 +423,11 @@ function PinView({
             <Avatar src={current.author.avatar} name={current.author.name} size={48} />
             <div>
               <strong>{current.author.name}</strong>
+              <span className="followers">{fmt(soc.follow(current).n)} {soc.follow(current).n === 1 ? "follower" : "followers"}</span>
               {current.author.bio && <span>{current.author.bio}</span>}
               {current.sample && <span className="badge">{current.aiGenerated ? "AI-generated sample" : "Illustrated sample"}</span>}
             </div>
+            <FollowButton pin={current} soc={soc} />
           </div>
           {related.length > 0 && (
             <>
@@ -334,7 +457,7 @@ function readSize(file: File): Promise<{ width: number; height: number } | null>
   });
 }
 
-function CreatePin({ uid, canPost, onClose }: { uid: string; canPost: boolean; onClose: () => void }) {
+function CreatePin({ uid, canPost, uploadMode, onClose }: { uid: string; canPost: boolean; uploadMode: "token" | "presigned"; onClose: () => void }) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -343,7 +466,7 @@ function CreatePin({ uid, canPost, onClose }: { uid: string; canPost: boolean; o
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState(canPost ? "" : "Posting is paused: the database isn't connected yet.");
+  const [status, setStatus] = useState(canPost ? "" : "Posting is paused until the database and image storage are connected.");
   const [over, setOver] = useState(false);
   useModal(onClose);
 
@@ -368,7 +491,8 @@ function CreatePin({ uid, canPost, onClose }: { uid: string; canPost: boolean; o
       setStatus("Uploading image…");
       const size = await readSize(file);
       const ext = file.type.split("/")[1].replace("jpeg", "jpg");
-      const blob = await upload(`photos/${uid}/pin.${ext}`, file, { access: "public", handleUploadUrl: "/api/upload" });
+      const send = uploadMode === "presigned" ? uploadPresigned : upload;
+      const blob = await send(`photos/${uid}/pin.${ext}`, file, { access: "public", handleUploadUrl: "/api/upload" });
       setStatus("Saving pin…");
       const res = await fetch("/api/pins", {
         method: "POST",

@@ -15,7 +15,7 @@ export const SAMPLE_PINS: Pin[] = (data.pins as SamplePin[]).map((p) => {
     title: p.title,
     description: p.description,
     category: p.category as Category,
-    author: { name: person.name, avatar: person.avatar, bio: person.bio },
+    author: { key: `s:${p.person}`, name: person.name, avatar: person.avatar, bio: person.bio },
     sample: true,
     mine: false,
     aiGenerated: Boolean(p.aiGenerated),
@@ -23,3 +23,6 @@ export const SAMPLE_PINS: Pin[] = (data.pins as SamplePin[]).map((p) => {
     height: p.height,
   };
 });
+
+export const SAMPLE_PEOPLE = new Set(Object.keys(people));
+export const SAMPLE_PIN_IDS = new Set(SAMPLE_PINS.map((p) => p.id));

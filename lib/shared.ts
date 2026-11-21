@@ -11,7 +11,11 @@ export type Pin = {
   title: string;
   description?: string;
   category: Category;
-  author: { name: string; avatar: string | null; bio?: string };
+  author: { key: string; name: string; avatar: string | null; bio?: string };
+  likes?: number;
+  liked?: boolean;
+  followers?: number;
+  following?: boolean;
   sample: boolean;
   mine: boolean;
   canEdit?: boolean;

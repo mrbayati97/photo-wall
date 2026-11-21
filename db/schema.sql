@@ -16,3 +16,20 @@ create table if not exists pins (
 );
 create index if not exists pins_created_at_idx on pins (created_at desc);
 create index if not exists pins_owner_idx on pins (owner);
+
+-- Likes on pins (sample pins use ids like "sample/priya-gown.webp").
+create table if not exists likes (
+  pin_id     text not null,
+  uid        text not null,
+  created_at timestamptz not null default now(),
+  primary key (pin_id, uid)
+);
+
+-- Follows: target is "u:<user hash>" for members or "s:<id>" for sample characters.
+create table if not exists follows (
+  target     text not null,
+  uid        text not null,
+  created_at timestamptz not null default now(),
+  primary key (target, uid)
+);
+create index if not exists follows_uid_idx on follows (uid);

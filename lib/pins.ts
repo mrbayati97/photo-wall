@@ -35,7 +35,7 @@ function toPin(r: Row, viewer: Viewer | null): Pin {
     title: r.title,
     description: r.description || undefined,
     category: asCategory(r.category),
-    author: { name: r.author_name || "Someone", avatar: r.author_image },
+    author: { key: `u:${r.owner}`, name: r.author_name || "Someone", avatar: r.author_image },
     sample: false,
     mine,
     canEdit: mine,
@@ -120,6 +120,7 @@ export async function deletePin(viewer: Viewer, id: string) {
   const row = await getRow(id);
   if (row.owner !== viewer.uid && !viewer.admin) throw new PinError("You can only delete your own pins.", 403);
   await sql()`delete from pins where id = ${id}`;
+  await sql()`delete from likes where pin_id = ${id}`;
   try {
     await del(row.image_url);
   } catch {

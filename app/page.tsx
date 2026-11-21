@@ -1,7 +1,9 @@
 import { signIn, signOut } from "@/auth";
 import { getViewer } from "@/lib/viewer";
 import { listPins } from "@/lib/pins";
+import { withSocial } from "@/lib/social";
 import { hasDatabase } from "@/lib/db";
+import { blobMode } from "@/lib/blob-mode";
 import { SAMPLE_PINS } from "@/lib/samples";
 import Board from "./board";
 
@@ -10,19 +12,22 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   const viewer = await getViewer();
   let pins = SAMPLE_PINS;
-  let dbError = false;
+  let dbOk = hasDatabase();
   try {
-    pins = [...(await listPins(viewer)), ...SAMPLE_PINS];
+    pins = await withSocial([...(await listPins(viewer)), ...SAMPLE_PINS], viewer);
   } catch (e) {
     console.error("Could not load pins from the database", e);
-    dbError = true;
+    dbOk = false;
   }
+  const mode = blobMode();
 
   return (
     <Board
       pins={pins}
       user={viewer}
-      canPost={hasDatabase() && !dbError}
+      social={dbOk}
+      canPost={dbOk && mode !== "none"}
+      uploadMode={mode === "oidc" ? "presigned" : "token"}
       signInAction={async () => {
         "use server";
         await signIn("google");

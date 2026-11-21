@@ -1,45 +1,5 @@
 {
   "people": {
-    "leila": {
-      "name": "Leila Haddad",
-      "bio": "Bakes bread at dawn, drinks coffee by noon.",
-      "avatar": "/avatars/leila.svg"
-    },
-    "kofi": {
-      "name": "Kofi Mensah",
-      "bio": "Travel photographer chasing golden hour.",
-      "avatar": "/avatars/kofi.svg"
-    },
-    "mei": {
-      "name": "Mei Tanaka",
-      "bio": "Painter. Mostly blues, sometimes coffee stains.",
-      "avatar": "/avatars/mei.svg"
-    },
-    "diego": {
-      "name": "Diego Alvarez",
-      "bio": "Surfs at sunrise, plays guitar at sunset.",
-      "avatar": "/avatars/diego.svg"
-    },
-    "amara": {
-      "name": "Amara Okafor",
-      "bio": "Collects wildflowers and summer fair tickets.",
-      "avatar": "/avatars/amara.svg"
-    },
-    "sam": {
-      "name": "Sam Rivers",
-      "bio": "Songwriter with a stack of half-read books.",
-      "avatar": "/avatars/sam.svg"
-    },
-    "noor": {
-      "name": "Noor Rahman",
-      "bio": "Plant parent of 43 and counting.",
-      "avatar": "/avatars/noor.svg"
-    },
-    "oskar": {
-      "name": "Oskar Lind",
-      "bio": "Coffee nerd. Reads by the window.",
-      "avatar": "/avatars/oskar.svg"
-    },
     "priya": {
       "name": "Priya Nair",
       "bio": "Fashion student who sews her own evening wear.",
@@ -68,24 +28,6 @@
   },
   "pins": [
     {
-      "file": "leila-01.svg",
-      "person": "leila",
-      "title": "Sunday sourdough",
-      "category": "Food",
-      "description": "Third try at an open crumb. Finally got the ear right.",
-      "width": 800,
-      "height": 1100
-    },
-    {
-      "file": "kofi-02.svg",
-      "person": "kofi",
-      "title": "Golden hour shoot",
-      "category": "Travel",
-      "description": "Twenty minutes of perfect light on the coast.",
-      "width": 800,
-      "height": 1000
-    },
-    {
       "file": "priya-gown.webp",
       "person": "priya",
       "title": "Emerald evening",
@@ -94,33 +36,6 @@
       "width": 900,
       "height": 1350,
       "aiGenerated": true
-    },
-    {
-      "file": "mei-03.svg",
-      "person": "mei",
-      "title": "Studio afternoon",
-      "category": "Art",
-      "description": "Working on a series of small blue landscapes.",
-      "width": 800,
-      "height": 1200
-    },
-    {
-      "file": "diego-04.svg",
-      "person": "diego",
-      "title": "Morning swell",
-      "category": "Outdoors",
-      "description": "Out before sunrise. Waist-high and glassy.",
-      "width": 800,
-      "height": 1150
-    },
-    {
-      "file": "amara-05.svg",
-      "person": "amara",
-      "title": "Wildflower walk",
-      "category": "Garden",
-      "description": "Picked a few on the trail home.",
-      "width": 800,
-      "height": 1000
     },
     {
       "file": "zuri-gown.webp",
@@ -133,33 +48,6 @@
       "aiGenerated": true
     },
     {
-      "file": "sam-06.svg",
-      "person": "sam",
-      "title": "Songs under the stars",
-      "category": "Music",
-      "description": "Campfire set, no setlist.",
-      "width": 800,
-      "height": 1100
-    },
-    {
-      "file": "noor-07.svg",
-      "person": "noor",
-      "title": "Meet the new fern",
-      "category": "Garden",
-      "description": "Plant number 43. Its name is Gerald.",
-      "width": 800,
-      "height": 950
-    },
-    {
-      "file": "oskar-08.svg",
-      "person": "oskar",
-      "title": "Perfect pour-over",
-      "category": "Food",
-      "description": "93°C water, 1:16 ratio, 3 minute brew.",
-      "width": 800,
-      "height": 900
-    },
-    {
       "file": "hana-gown.webp",
       "person": "hana",
       "title": "Midnight navy",
@@ -168,33 +56,6 @@
       "width": 900,
       "height": 1350,
       "aiGenerated": true
-    },
-    {
-      "file": "leila-09.svg",
-      "person": "leila",
-      "title": "Coffee in the old town",
-      "category": "Travel",
-      "description": "A tiny café with the best cardamom latte.",
-      "width": 800,
-      "height": 1000
-    },
-    {
-      "file": "kofi-10.svg",
-      "person": "kofi",
-      "title": "First snow in the hills",
-      "category": "Travel",
-      "description": "Packed the camera, forgot the gloves.",
-      "width": 800,
-      "height": 1150
-    },
-    {
-      "file": "mei-11.svg",
-      "person": "mei",
-      "title": "Rainy day sketchbook",
-      "category": "Art",
-      "description": "Filling pages at the bus stop.",
-      "width": 800,
-      "height": 900
     },
     {
       "file": "lucia-gown.webp",
@@ -207,33 +68,6 @@
       "aiGenerated": true
     },
     {
-      "file": "diego-12.svg",
-      "person": "diego",
-      "title": "Open mic night",
-      "category": "Music",
-      "description": "Played two new songs. Nobody threw anything.",
-      "width": 800,
-      "height": 1200
-    },
-    {
-      "file": "amara-13.svg",
-      "person": "amara",
-      "title": "Summer fair",
-      "category": "Food",
-      "description": "Strawberry and mint, obviously.",
-      "width": 800,
-      "height": 1000
-    },
-    {
-      "file": "sam-14.svg",
-      "person": "sam",
-      "title": "Current read",
-      "category": "Books",
-      "description": "Halfway through and already recommending it.",
-      "width": 800,
-      "height": 1000
-    },
-    {
       "file": "grace-gown.webp",
       "person": "grace",
       "title": "Champagne for our anniversary",
@@ -242,42 +76,6 @@
       "width": 900,
       "height": 1350,
       "aiGenerated": true
-    },
-    {
-      "file": "noor-15.svg",
-      "person": "noor",
-      "title": "Mountain cabin weekend",
-      "category": "Travel",
-      "description": "Hot chocolate and zero phone signal.",
-      "width": 800,
-      "height": 1100
-    },
-    {
-      "file": "oskar-16.svg",
-      "person": "oskar",
-      "title": "Reading by the window",
-      "category": "Books",
-      "description": "Late night, one more chapter.",
-      "width": 800,
-      "height": 1050
-    },
-    {
-      "file": "mei-17.svg",
-      "person": "mei",
-      "title": "Sketching outdoors",
-      "category": "Outdoors",
-      "description": "Taking reference photos for the next painting.",
-      "width": 800,
-      "height": 1000
-    },
-    {
-      "file": "amara-18.svg",
-      "person": "amara",
-      "title": "New braids",
-      "category": "Style",
-      "description": "Six hours well spent.",
-      "width": 800,
-      "height": 900
     }
   ]
 }
