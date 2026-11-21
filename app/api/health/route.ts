@@ -14,6 +14,8 @@ export async function GET() {
     database: "missing" as "missing" | "connected" | "error",
     pins: null as number | null,
     error: undefined as string | undefined,
+    // Names only (never values), to spot settings saved under unexpected names.
+    envNames: Object.keys(process.env).filter((k) => /POSTGRES|DATABASE|SUPABASE|BLOB|ADMIN|AUTH_/.test(k)).sort(),
   };
   if (hasDatabase()) {
     try {

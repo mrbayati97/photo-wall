@@ -5,8 +5,13 @@ import postgres from "postgres";
  * set by the Supabase integration in Vercel. Query parameters are dropped
  * because Supabase adds ones the driver would forward to the server.
  */
-function connectionString() {
-  const raw = (process.env.DATABASE_URL || process.env.POSTGRES_URL || "").trim();
+export function connectionString() {
+  const env = process.env;
+  // Supabase's Vercel integration may add a prefix (e.g. SUPABASE_POSTGRES_URL).
+  const key =
+    ["DATABASE_URL", "POSTGRES_URL"].find((k) => env[k]?.trim()) ??
+    Object.keys(env).find((k) => /(^|_)(POSTGRES_URL|DATABASE_URL)$/.test(k) && env[k]?.trim());
+  const raw = (key ? env[key] : "")!.trim();
   return raw ? raw.split("?")[0] : "";
 }
 
