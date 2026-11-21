@@ -28,7 +28,7 @@ export function sql(): Sql {
     const url = connectionString();
     if (!url) throw new Error("Database is not connected. Set DATABASE_URL.");
     const local = /@(localhost|127\.0\.0\.1)[:/]/.test(url);
-    g.__sql = postgres(url, { prepare: false, ssl: local ? false : "require", max: local ? 1 : 3, idle_timeout: 20, onnotice: () => {} });
+    g.__sql = postgres(url, { prepare: false, ssl: local ? false : "require", max: 1, idle_timeout: 20, connect_timeout: 10, onnotice: () => {}, connection: { statement_timeout: 8000 } });
   }
   return g.__sql;
 }

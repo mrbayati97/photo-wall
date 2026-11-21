@@ -11,12 +11,17 @@ export async function withSocial(pins: Pin[], viewer: Viewer | null): Promise<Pi
   if (!hasDatabase()) return pins;
   await ensureSchema();
   const db = sql();
-  const [likeRows, followRows, myLikes, myFollows] = await Promise.all([
-    db<{ pin_id: string; n: number }[]>`select pin_id, count(*)::int as n from likes group by pin_id`,
-    db<{ target: string; n: number }[]>`select target, count(*)::int as n from follows group by target`,
-    viewer ? db<{ pin_id: string }[]>`select pin_id from likes where uid = ${viewer.uid}` : Promise.resolve([]),
-    viewer ? db<{ target: string }[]>`select target from follows where uid = ${viewer.uid}` : Promise.resolve([]),
-  ]);
+  // One query at a time: serverless + Supabase's pooler use a single connection.
+  const likeRows = await db<{ pin_id: string; n: number }[]>`select pin_id, count(*)::int as n from likes group by pin_id`;
+  const followRows = await db<{ target: string; n: number }[]>`select target, count(*)::int as n from follows group by target`;
+  const mine = viewer
+    ? await db<{ kind: string; id: string }[]>`
+        select 'like' as kind, pin_id as id from likes where uid = ${viewer.uid}
+        union all
+        select 'follow' as kind, target as id from follows where uid = ${viewer.uid}`
+    : [];
+  const myLikes = mine.filter((r) => r.kind === "like").map((r) => ({ pin_id: r.id }));
+  const myFollows = mine.filter((r) => r.kind === "follow").map((r) => ({ target: r.id }));
   const likes = new Map(likeRows.map((r) => [r.pin_id, r.n]));
   const followers = new Map(followRows.map((r) => [r.target, r.n]));
   const liked = new Set(myLikes.map((r) => r.pin_id));

@@ -8,6 +8,7 @@ import { SAMPLE_PINS } from "@/lib/samples";
 import Board from "./board";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 20;
 
 export default async function Home() {
   const viewer = await getViewer();
