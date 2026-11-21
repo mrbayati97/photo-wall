@@ -48,15 +48,18 @@ export default function Board({ pins, user, social, canPost, uploadMode, signInA
   const [creating, setCreating] = useState(false);
   const [menu, setMenu] = useState(false);
   const [notice, setNotice] = useState("");
-  const [likes, setLikes] = useState<Record<string, Count>>({});
-  const [follows, setFollows] = useState<Record<string, Count>>({});
+  const likeMap = (list: Pin[]) => Object.fromEntries(list.map((p) => [p.id, { n: p.likes ?? 0, on: Boolean(p.liked) }]));
+  const followMap = (list: Pin[]) => Object.fromEntries(list.map((p) => [p.author.key, { n: p.followers ?? 0, on: Boolean(p.following) }]));
+  const [likes, setLikes] = useState<Record<string, Count>>(() => likeMap(pins));
+  const [follows, setFollows] = useState<Record<string, Count>>(() => followMap(pins));
 
   useEffect(() => setSaved(loadSaved()), []);
 
   // Server counts are the starting point; refreshed whenever new pins arrive.
   useEffect(() => {
-    setLikes(Object.fromEntries(pins.map((p) => [p.id, { n: p.likes ?? 0, on: Boolean(p.liked) }])));
-    setFollows(Object.fromEntries(pins.map((p) => [p.author.key, { n: p.followers ?? 0, on: Boolean(p.following) }])));
+    setLikes(likeMap(pins));
+    setFollows(followMap(pins));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pins]);
 
   useEffect(() => {
