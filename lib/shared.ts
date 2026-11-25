@@ -22,6 +22,7 @@ export type Pin = {
   canDelete?: boolean;
   createdAt?: string;
   aiGenerated?: boolean;
+  stock?: boolean;
   width?: number;
   height?: number;
 };

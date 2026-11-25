@@ -320,7 +320,7 @@ function PinCard({ pin, soc, saved, onSave, onOpen }: { pin: Pin; soc: Social; s
         <div className="pin-author">
           <Avatar src={pin.author.avatar} name={pin.author.name} size={24} />
           <span className="who">{pin.author.name}</span>
-          {pin.sample && <span className="badge">{pin.aiGenerated ? "AI" : "Sample"}</span>}
+          {pin.sample && <span className="badge">{pin.aiGenerated ? "AI" : pin.stock ? "Stock" : "Sample"}</span>}
         </div>
         <div className="pin-actions">
           <FollowButton pin={pin} soc={soc} />
@@ -428,7 +428,7 @@ function PinView({
               <strong>{current.author.name}</strong>
               <span className="followers">{fmt(soc.follow(current).n)} {soc.follow(current).n === 1 ? "follower" : "followers"}</span>
               {current.author.bio && <span>{current.author.bio}</span>}
-              {current.sample && <span className="badge">{current.aiGenerated ? "AI-generated sample" : "Illustrated sample"}</span>}
+              {current.sample && <span className="badge">{current.aiGenerated ? "AI-generated sample" : current.stock ? "Stock photo sample" : "Sample"}</span>}
             </div>
             <FollowButton pin={current} soc={soc} />
           </div>

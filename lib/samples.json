@@ -24,6 +24,21 @@
       "name": "Grace Thompson",
       "bio": "School principal, proud mum, champagne enthusiast.",
       "avatar": "/avatars/grace.webp"
+    },
+    "elena": {
+      "name": "Elena Novak",
+      "bio": "Retired translator. Houseplants, crosswords, strong coffee.",
+      "avatar": "/avatars/elena.webp"
+    },
+    "margaret": {
+      "name": "Margaret Hale",
+      "bio": "Portrait painter. Let the grey grow in and never looked back.",
+      "avatar": "/avatars/margaret.webp"
+    },
+    "katrin": {
+      "name": "Katrin Berg",
+      "bio": "Runs a bakery by the park. Lunch breaks are for walking.",
+      "avatar": "/avatars/katrin.webp"
     }
   },
   "pins": [
@@ -76,6 +91,36 @@
       "width": 900,
       "height": 1350,
       "aiGenerated": true
+    },
+    {
+      "file": "elena-portrait.webp",
+      "person": "elena",
+      "title": "Sunday morning, no plans",
+      "category": "Garden",
+      "description": "The monstera finally put out a new leaf, so I'm calling it a good week.",
+      "width": 1200,
+      "height": 800,
+      "stock": true
+    },
+    {
+      "file": "margaret-portrait.webp",
+      "person": "margaret",
+      "title": "Sitting for my own portrait",
+      "category": "Art",
+      "description": "After thirty years painting other faces, a friend talked me into being the subject.",
+      "width": 1200,
+      "height": 800,
+      "stock": true
+    },
+    {
+      "file": "katrin-portrait.webp",
+      "person": "katrin",
+      "title": "Lunch break in the park",
+      "category": "Outdoors",
+      "description": "Ovens on at five, so the midday walk under the trees is the best part of my day.",
+      "width": 1200,
+      "height": 800,
+      "stock": true
     }
   ]
 }

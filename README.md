@@ -64,7 +64,7 @@ npm run dev
 - `app/api/pins/[id]`: `PATCH` lets the owner edit a pin; `DELETE` lets the owner or an admin remove it (row and image).
 - `lib/pins.ts`: validation and permissions; `lib/db.ts`: Postgres connection and automatic table setup.
 - Users are stored as a hash of their email, so emails never appear in the database or URLs.
-- Sample pins: 5 AI-generated portrait photos of fictional characters, labelled as samples.
+- Sample pins: 5 AI-generated portraits plus 3 licensed Adobe Stock photos (241973567, 521786617, 283568656) with fictional names and bios, all labelled as samples.
 - `app/api/likes` and `app/api/follows`: signed-in users can like pins and follow people (counts stored in Postgres).
 - Saved pins are kept in the visitor's browser.
 - Uploaded image URLs are public, so anyone with a link can view a photo.
