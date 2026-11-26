@@ -24,6 +24,8 @@ Local env goes in `.env.local` (see `.env.example`). Without `AUTH_SECRET`, Auth
 
 **One server-rendered page.** `app/page.tsx` (force-dynamic) loads the viewer, DB pins, and the static sample pins, merges like/follow counts via `withSocial`, and passes everything to `app/board.tsx`, a single large client component holding the grid, search, category filters, pin sheet, create/edit forms, and like/follow buttons. Counts are rendered server-side on first paint, so don't move them to a client fetch.
 
+**Public JSON feed.** `app/photos.json/route.ts` serves `/photos.json`: every photo (member pins, then samples) with absolute image URLs, author name/avatar/bio, `source` (`member` / `ai-generated` / `stock`) and like counts. It is the same for every visitor: no viewer-specific fields and no user hashes. Keep it in step with `Pin` when fields change.
+
 **The site degrades gracefully when services are missing.** `hasDatabase()` (`lib/db.ts`) and `blobMode()` (`lib/blob-mode.ts`) gate features: with no DB, only sample pins show and social features are off; with no Blob store, posting is disabled. `/api/health` reports which services are configured (names and yes/no only, never values). Keep this property when adding features.
 
 **Database (`lib/db.ts`).**
