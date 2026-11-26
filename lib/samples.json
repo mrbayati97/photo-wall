@@ -39,6 +39,16 @@
       "name": "Katrin Berg",
       "bio": "Runs a bakery by the park. Lunch breaks are for walking.",
       "avatar": "/avatars/katrin.webp"
+    },
+    "aiko": {
+      "name": "Aiko Tanaka",
+      "bio": "Runs a vintage shop. Nothing in my wardrobe is newer than 1979.",
+      "avatar": "/avatars/aiko.webp"
+    },
+    "kwame": {
+      "name": "Kwame Mensah",
+      "bio": "Menswear tailor. Every suit gets one hidden pop of colour.",
+      "avatar": "/avatars/kwame.webp"
     }
   },
   "pins": [
@@ -121,6 +131,26 @@
       "width": 1200,
       "height": 800,
       "stock": true
+    },
+    {
+      "file": "aiko-trench.webp",
+      "title": "Camel trench, thrifted twice",
+      "category": "Style",
+      "description": "Found this trench in a Kyoto flea market and it's survived ten winters since.",
+      "person": "aiko",
+      "width": 900,
+      "height": 1350,
+      "aiGenerated": true
+    },
+    {
+      "file": "kwame-suit.webp",
+      "title": "Rust three-piece, kente lining",
+      "category": "Style",
+      "description": "Cut this one for my cousin's wedding, then kept the pattern for myself.",
+      "person": "kwame",
+      "width": 900,
+      "height": 1350,
+      "aiGenerated": true
     }
   ]
 }

@@ -1,0 +1,38 @@
+{
+  "id": "aiko",
+  "profile": {
+    "name": "Aiko Tanaka",
+    "bio": "Runs a vintage shop. Nothing in my wardrobe is newer than 1979."
+  },
+  "pin": {
+    "file": "aiko-trench.webp",
+    "title": "Camel trench, thrifted twice",
+    "category": "Style",
+    "description": "Found this trench in a Kyoto flea market and it's survived ten winters since."
+  },
+  "image": {
+    "type": "street-style fashion photograph, photorealistic",
+    "subject": {
+      "description": "a fictional Japanese woman in her late 20s, chin-length bob with blunt fringe, small gold hoop earrings",
+      "pose": "mid-stride on a city sidewalk, glancing toward the camera, one hand in her coat pocket",
+      "outfit": {
+        "main": "1970s camel belted trench coat worn open",
+        "details": "chocolate-brown turtleneck, high-waisted cream wide-leg trousers, tan leather shoulder bag, brown platform loafers"
+      }
+    },
+    "setting": {
+      "location": "quiet city street lined with old brick shopfronts in autumn",
+      "background": "softly blurred, a few fallen yellow leaves on the pavement"
+    },
+    "lighting": "golden-hour sunlight from behind, gentle rim light on hair",
+    "camera": {
+      "framing": "full-length, vertical portrait",
+      "lens": "50mm",
+      "aperture": "f/2.2",
+      "depth_of_field": "shallow"
+    },
+    "color_palette": ["camel", "chocolate brown", "cream", "autumn gold"],
+    "mood": "effortless, nostalgic, warm",
+    "avoid": ["text", "readable signs", "logos", "watermarks", "extra fingers", "distorted hands", "real celebrity likeness"]
+  }
+}

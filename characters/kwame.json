@@ -1,0 +1,38 @@
+{
+  "id": "kwame",
+  "profile": {
+    "name": "Kwame Mensah",
+    "bio": "Menswear tailor. Every suit gets one hidden pop of colour."
+  },
+  "pin": {
+    "file": "kwame-suit.webp",
+    "title": "Rust three-piece, kente lining",
+    "category": "Style",
+    "description": "Cut this one for my cousin's wedding, then kept the pattern for myself."
+  },
+  "image": {
+    "type": "editorial fashion photograph, photorealistic",
+    "subject": {
+      "description": "a fictional West African man in his mid-30s, short neat beard, warm confident smile",
+      "pose": "standing three-quarter turn, one hand adjusting his jacket cuff, jacket open just enough to show the lining",
+      "outfit": {
+        "main": "tailored rust-orange wool three-piece suit, double-breasted waistcoat",
+        "details": "kente-patterned silk jacket lining, cream shirt, no tie, brown suede loafers, slim gold watch"
+      }
+    },
+    "setting": {
+      "location": "sunlit tailor's workshop with bolts of fabric on wooden shelves",
+      "background": "softly out of focus, warm tones"
+    },
+    "lighting": "late-afternoon window light from the left, soft shadows",
+    "camera": {
+      "framing": "full-length, vertical portrait",
+      "lens": "85mm",
+      "aperture": "f/2.0",
+      "depth_of_field": "shallow"
+    },
+    "color_palette": ["rust", "cream", "warm wood", "gold accents"],
+    "mood": "proud, relaxed, crafted",
+    "avoid": ["text", "logos", "watermarks", "extra fingers", "distorted hands", "real celebrity likeness"]
+  }
+}
