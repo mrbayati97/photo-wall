@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { getFeed } from "@/lib/feed";
 import CopyButton from "./copy-button";
+import JsonView from "./json-view";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 20;
@@ -48,7 +49,7 @@ export default async function PhotosJsonPage() {
                 <code>{p.id}</code>
                 <CopyButton text={JSON.stringify(p, null, 2)} label="Copy" small />
               </div>
-              <pre>{JSON.stringify(p, null, 2)}</pre>
+              <JsonView value={p} />
             </div>
           </li>
         ))}
