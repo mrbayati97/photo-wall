@@ -163,6 +163,10 @@ export default function Board({ pins, user, social, canPost, uploadMode, signInA
         </label>
 
         <div className="actions">
+          <a className="btn ghost json-link" href="/photos" title="See every photo with its JSON" aria-label="Photos JSON">
+            <span className="icon" aria-hidden="true">{"{ }"}</span>
+            <span className="label">Photos JSON</span>
+          </a>
           {user ? (
             <>
               <button className="btn primary" type="button" onClick={() => setCreating(true)}>

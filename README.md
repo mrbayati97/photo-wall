@@ -62,6 +62,7 @@ npm run dev
 - `app/api/upload`: gives signed-in users a short-lived token; the browser uploads the image straight to Vercel Blob (up to 20 MB, PNG/JPG/GIF/WebP).
 - `app/api/pins`: `GET` lists pins, `POST` saves a pin (title, description, category, size) after its image is uploaded.
 - `/photos.json`: every photo on the wall (member pins and samples) as public JSON, with image links, authors, categories and like counts.
+- `/photos`: the same list as a page, each photo shown next to its JSON with copy buttons. The **Photos JSON** button in the top bar opens it.
 - `app/api/pins/[id]`: `PATCH` lets the owner edit a pin; `DELETE` lets the owner or an admin remove it (row and image).
 - `lib/pins.ts`: validation and permissions; `lib/db.ts`: Postgres connection and automatic table setup.
 - Users are stored as a hash of their email, so emails never appear in the database or URLs.
