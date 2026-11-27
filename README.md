@@ -58,6 +58,7 @@ npm run dev
 ```
 
 ## How it works
+- `/` is a static landing page (`public/index.html`, built with the Taste Skill kit in `public/assets`); the wall itself is at `/wall` (`app/wall/page.tsx`).
 - `auth.ts`: Google sign-in via Auth.js. `lib/viewer.ts` works out who is signed in and whether they're an admin (`ADMIN_EMAILS`).
 - `app/api/upload`: gives signed-in users a short-lived token; the browser uploads the image straight to Vercel Blob (up to 20 MB, PNG/JPG/GIF/WebP).
 - `app/api/pins`: `GET` lists pins, `POST` saves a pin (title, description, category, size) after its image is uploaded.

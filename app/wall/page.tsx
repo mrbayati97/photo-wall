@@ -5,7 +5,7 @@ import { withSocial } from "@/lib/social";
 import { hasDatabase } from "@/lib/db";
 import { blobMode } from "@/lib/blob-mode";
 import { SAMPLE_PINS } from "@/lib/samples";
-import Board from "./board";
+import Board from "../board";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 20;
@@ -31,11 +31,11 @@ export default async function Home() {
       uploadMode={mode === "oidc" ? "presigned" : "token"}
       signInAction={async () => {
         "use server";
-        await signIn("google");
+        await signIn("google", { redirectTo: "/wall" });
       }}
       signOutAction={async () => {
         "use server";
-        await signOut();
+        await signOut({ redirectTo: "/wall" });
       }}
     />
   );

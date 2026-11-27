@@ -138,7 +138,7 @@ export default function Board({ pins, user, social, canPost, uploadMode, signInA
   return (
     <>
       <header className="topbar">
-        <a className="brand" href="/" aria-label="Photo Wall home">
+        <a className="brand" href="/wall" aria-label="Photo Wall">
           <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
             <rect x="2" y="2" width="12" height="17" rx="4" fill="var(--accent)" />
             <rect x="18" y="2" width="12" height="11" rx="4" fill="var(--ink)" />

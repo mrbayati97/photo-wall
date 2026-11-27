@@ -21,7 +21,7 @@ export default async function PhotosJsonPage() {
   return (
     <main className="json-page">
       <header className="json-head">
-        <a className="back" href="/">← Back to the wall</a>
+        <a className="back" href="/wall">← Back to the wall</a>
         <h1>Photos as JSON</h1>
         <p className="json-lead">
           {feed.count} photos, each with its record from <a href="/photos.json">/photos.json</a>. Use the feed in your own

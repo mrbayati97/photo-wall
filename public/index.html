@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en" data-type="software" data-radius="round" data-ground="sky" data-buttons="pill" data-motion>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Photo Wall: a shared photo board, free with a Google account</title>
+<meta name="description" content="Post photos with a title and a category, like other pins and follow the people behind them. Browsing is open to everyone.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Photo Wall: a shared photo board, free with a Google account">
+<meta property="og:description" content="Post photos, like pins and follow people. Every photo is also a public JSON feed.">
+<meta property="og:image" content="share.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#eef0f3">
+<!-- <link rel="canonical" href="https://[the site's domain]/"> : add once the production domain is fixed -->
+<meta name="site-kind" content="software">
+<meta name="page-type" content="software">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wdth,wght@75..100,400..700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/system.css">
+<link rel="stylesheet" href="assets/ui/cards.css">
+<link rel="stylesheet" href="assets/motion/motion.css">
+<link rel="stylesheet" href="assets/backgrounds/backgrounds.css">
+<link rel="stylesheet" href="assets/layout/layout.css">
+<link rel="stylesheet" href="assets/icons/icon.css">
+<style>
+:root {
+  --p-bg: #eef0f3; --p-surface: #e2e5ea; --p-ink: #0b0c0e; --p-muted: #5d6470;
+  --p-accent: #1f2de6; --p-accent-ink: #ffffff; --p-action: #1f2de6; --p-action-ink: #ffffff;
+  --p-inv-bg: #0b0c0e; --p-inv-surface: #17181a; --p-inv-ink: #eef0f3; --p-inv-muted: #8e8f92;
+  --p-inv-accent: #eef0f3; --p-inv-accent-ink: #0b0c0e; --p-inv-action: #eef0f3; --p-inv-action-ink: #0b0c0e;
+  --font-display: "Instrument Sans", system-ui, sans-serif;
+  --font-text: "Instrument Sans", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --display-weight: 500;
+  --display-tracking: -0.028em;
+  --display-tracking-xl: -0.036em;
+  --display-stretch: 96%;
+  --ly-scale: 1.04;
+}
+</style>
+<link rel="stylesheet" href="assets/ui/base.css">
+<link rel="stylesheet" href="assets/ui/window/fragment.css">
+<link rel="stylesheet" href="assets/ui/notify/fragment.css">
+<link rel="stylesheet" href="assets/ui/search/fragment.css">
+<link rel="stylesheet" href="assets/ui/checklist/fragment.css">
+<link rel="stylesheet" href="assets/ui/code/fragment.css">
+<link rel="stylesheet" href="assets/diagrams/diagram.css">
+<script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
+<script src="assets/backgrounds/backgrounds.js"></script>
+<script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
+<link rel="modulepreload" href="assets/moments/moments.js">
+<link rel="modulepreload" href="assets/moments/lib.js">
+<link rel="modulepreload" href="assets/moments/liquid-type/moment.js">
+<!-- page CSS: only what sits inside a visual (the hero window, the open pin, the post form) and the panel heights -->
+<style>
+  .menu-card .panel { --p-h: 200px; }
+  .hero--centred .hero__lead { color: var(--ink); }
+  .pw-strip figure { margin: 0; }
+  .pw-strip img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; object-position: 50% 25%; border-radius: var(--r-lg); }
+  @media (max-width: 639px) { .pw-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pw-strip > figure { grid-column: auto; } }
+  .pw-faces { list-style: none; margin: var(--s-6) 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, 64px); gap: var(--s-3); }
+  .pw-faces img { display: block; width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
+  @media (max-width: 639px) { .faq .pw-desk { display: none; } .pw-faces { grid-template-columns: repeat(5, 44px); margin-top: var(--s-5); } .pw-faces img { width: 44px; height: 44px; } }
+  @media (max-width: 359px) { .pw-faces { display: none; } }
+  #social .panel { --p-h: 300px; }
+  @media (max-width: 639px) { #social .panel { --p-h: 200px; } }
+
+  /* the hero window: Photo Wall itself, light, its search bar, category chips and a slice of the wall */
+  .pw-win { background: #fff; color: #0b0c0e; border: 1px solid rgb(11 12 14 / .1); border-radius: 16px; box-shadow: 0 24px 60px -24px rgb(11 12 14 / .35); overflow: hidden; font: 13px/1.4 var(--font-text); }
+  .pw-win__bar { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 14px; border-bottom: 1px solid rgb(11 12 14 / .08); }
+  .pw-win__dots { display: flex; gap: 6px; } .pw-win__dots i { width: 10px; height: 10px; border-radius: 50%; background: #d6d9de; }
+  .pw-win__brand { display: flex; align-items: center; gap: 6px; font-weight: 500; white-space: nowrap; }
+  .pw-win__search { flex: 1; height: 30px; border-radius: 8px; background: transparent; box-shadow: inset 0 0 0 1px rgb(11 12 14 / .14); display: flex; align-items: center; padding: 0 10px; color: #5d6470; min-width: 0; overflow: hidden; white-space: nowrap; }
+  .pw-win__chips { display: flex; gap: 6px; padding: 10px 14px 0; overflow: hidden; }
+  .pw-win__chips span { height: 28px; padding: 0 12px; border-radius: 8px; display: inline-flex; align-items: center; color: #5d6470; white-space: nowrap; }
+  .pw-win__chips span.is-on { background: #e2e5ea; color: #0b0c0e; }
+  .pw-win__wall { columns: 5 120px; column-gap: 10px; padding: 12px 14px 14px; }
+  .pw-win__wall figure { margin: 0 0 10px; break-inside: avoid; position: relative; }
+  .pw-win__wall img { display: block; width: 100%; height: auto; border-radius: 10px; }
+  .pw-win__wall figcaption { padding: 4px 2px 0; font-size: 13px; color: #0b0c0e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pw-win__save { position: absolute; right: 6px; top: 6px; height: 26px; padding: 0 10px; border-radius: 8px; background: #1f2de6; color: #fff; display: inline-flex; align-items: center; font-weight: 500; }
+  .pw-win__toast { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); background: #0b0c0e; color: #eef0f3; padding: 8px 14px; border-radius: 10px; white-space: nowrap; }
+  .pw-win__body { position: relative; }
+  @media (max-width: 639px) { .pw-win__wall { columns: 2; } .pw-win__wall figure:nth-child(n+3) { display: none; } .pw-win__wall figcaption, .pw-win__chips span:nth-child(n+5) { display: none; } .pw-win__brand span { display: none; } }
+
+  /* the open pin in the app frame: the photograph beside its title, maker and the pins under it */
+  .pw-pin { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding: 20px; height: 100%; background: var(--u-bg); color: var(--u-ink); font: 14px/1.5 var(--font-text); }
+  .pw-pin__img { border-radius: var(--u-r2); overflow: hidden; background: var(--u-fill); align-self: start; }
+  .pw-pin__img img { display: block; width: 100%; height: auto; }
+  .pw-pin__info { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .pw-pin__top { display: flex; gap: 8px; align-items: center; }
+  .pw-pin__chip { height: 28px; padding: 0 10px; border-radius: 8px; background: var(--u-fill); display: inline-flex; align-items: center; color: var(--u-muted); }
+  .pw-pin__heart { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 10px; border-radius: 8px; background: var(--u-fill); }
+  .pw-pin__heart svg { width: 15px; height: 15px; }
+  .pw-pin__title { font: 500 22px/1.2 var(--font-display); letter-spacing: -0.02em; margin: 0; }
+  .pw-pin__who { display: grid; grid-template-columns: 36px 1fr auto; gap: 2px 10px; align-items: center; }
+  .pw-pin__who img { grid-row: 1 / span 2; width: 36px; height: 36px; border-radius: 50%; }
+  .pw-pin__who b { font-weight: 500; } .pw-pin__who small { color: var(--u-muted); font-size: 13px; grid-column: 2; }
+  .pw-pin__follow { grid-row: 1 / span 2; grid-column: 3; height: 30px; padding: 0 12px; border-radius: 8px; background: var(--u-ink); color: var(--u-bg); display: inline-flex; align-items: center; font-weight: 500; }
+  .pw-pin__badge { align-self: start; font-size: 13px; padding: 2px 8px; border-radius: 99px; background: var(--u-fill); color: var(--u-muted); }
+  .pw-pin__more { font: 500 15px/1.3 var(--font-display); margin-top: 4px; }
+  .pw-pin__rel { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .pw-pin__rel img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 8px; display: block; }
+  @media (max-width: 639px) { .pw-pin { grid-template-columns: minmax(0, 1fr); height: auto; align-content: start; } .pw-pin__img { max-height: 200px; } .pw-pin__img img { aspect-ratio: 4 / 3; object-fit: cover; object-position: 50% 20%; } .pw-pin__rel, .pw-pin__more, .pw-pin__bio, .pw-pin__badge { display: none; } }
+
+  /* the app frame recipe (sections-library.md, app-frame) */
+  .app.ui { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); margin-top: var(--s-7); background: var(--u-bg); border: 1px solid var(--u-border); border-radius: var(--u-r); box-shadow: var(--u-shadow); }
+  .app > .app__pane { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+  .app > .app__pane + .app__pane { border-left: 1px solid var(--u-line); }
+  .app > .app__pane > .ui-panel { width: 100%; border: 0; border-radius: 0; box-shadow: none; }
+  .app > .app__pane::after { content: ""; position: absolute; inset: auto 0 0 0; height: 64px; background: linear-gradient(transparent, var(--u-bg)); pointer-events: none; }
+  @media (min-width: 1024px) and (max-width: 1279px) { .app.ui { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); } }
+  @media (max-width: 1023px) {
+    .app.ui { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+    .app > .app__pane--list { max-height: 252px; }
+    .app > .app__pane--list::after { display: none; }
+    .app .ui-win__side { display: none; }
+    .app .ui-win__body { grid-template-columns: minmax(0, 1fr); }
+    .app > .app__pane + .app__pane { border-left: 0; border-top: 1px solid var(--u-line); }
+  }
+  @media (max-width: 639px) {
+    .app.ui { grid-template-rows: minmax(0, 1fr); }
+    .app > .app__pane--list { display: none; }
+    .app > .app__pane + .app__pane { border-top: 0; }
+  }
+
+  /* the post form in the split frame: the photograph dropped in, its fields filled */
+  .pw-post { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding: 20px; background: var(--u-bg); color: var(--u-ink); border: 1px solid var(--u-border); border-radius: var(--u-r); box-shadow: var(--u-shadow); font: 14px/1.5 var(--font-text); }
+  .pw-post__drop { border-radius: var(--u-r2); overflow: hidden; background: var(--u-fill); }
+  .pw-post__drop img { display: block; width: 100%; height: auto; }
+  .pw-post__fields { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .pw-post__h { font: 500 20px/1.2 var(--font-display); letter-spacing: -0.02em; margin: 0 0 8px; }
+  .pw-post__l { font-size: 13px; font-weight: 500; margin-top: 6px; }
+  .pw-post__f { min-height: 40px; border: 1px solid var(--u-line-2, var(--u-line)); border-radius: 8px; padding: 9px 12px; color: var(--u-ink); }
+  .pw-post__f--area { min-height: 64px; color: var(--u-muted); }
+  .pw-post__btn { margin-top: 12px; height: 40px; border-radius: 99px; background: #1f2de6; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 500; }
+  .pw-post__hint { font-size: 13px; color: var(--u-muted); }
+</style>
+</head>
+<body>
+<!-- type: software (site-kind software; an app with accounts)
+     deal: hero centred, nav nav-cards, close close-type, footer footer-dark, rhythm space, buttons pill, mark wordmark,
+           palette cool-grey-cobalt, type instrument (Instrument Sans + DM Mono), radius round, ground sky
+     effect: painterly-landscape in the hero window
+     moments: liquid-type (the statement section #categories; redealt from marquee-row, whose moving track the checkers read as a clipped carousel) -->
+
+<header class="nav">
+  <div class="wrap nav__bar">
+    <a class="skip-link" href="#top">Skip to content</a>
+    <a class="nav__logo" href="#top">Photo Wall</a>
+    <nav class="nav__links" aria-label="Main">
+      <div class="nav__item">
+        <a class="nav__link" href="#wall">Wall <svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <div class="nav__menu">
+          <div class="wrap grid">
+            <a class="menu-card span-4" href="#wall">
+              <div class="panel"><img class="frame__img" src="landing/kwame-suit-800.webp" alt="A man in a rust three-piece suit in a tailor's workshop" width="800" height="1200" loading="lazy" data-source="client" data-subject="a sample pin, Style"></div>
+              <span class="t-card">Style</span>
+              <span class="t-small muted">Gowns, suits and coats, six pins so far</span>
+            </a>
+            <a class="menu-card span-4" href="#wall">
+              <div class="panel"><img class="frame__img" src="landing/elena-portrait-800.webp" alt="A woman smiling at home beside a houseplant" width="800" height="533" loading="lazy" data-source="client" data-subject="a sample pin, Garden"></div>
+              <span class="t-card">Garden</span>
+              <span class="t-small muted">Plants, beds and windowsills</span>
+            </a>
+            <a class="menu-card span-4" href="#wall">
+              <div class="panel"><img class="frame__img" src="landing/katrin-portrait-800.webp" alt="A woman with folded arms on a path through a park" width="800" height="533" loading="lazy" data-source="client" data-subject="a sample pin, Outdoors"></div>
+              <span class="t-card">Outdoors</span>
+              <span class="t-small muted">Parks, walks and long weekends</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="nav__item"><a class="nav__link" href="#post">Posting</a></div>
+      <div class="nav__item"><a class="nav__link" href="#social">People</a></div>
+      <div class="nav__item"><a class="nav__link" href="#feed">Feed</a></div>
+      <div class="nav__item"><a class="nav__link" href="#faq">Questions</a></div>
+    </nav>
+    <div class="nav__actions">
+      <a class="nav__link" href="/api/auth/signin?callbackUrl=%2Fwall">Sign in</a>
+      <a class="btn btn--primary" href="/wall">See the wall</a>
+    </div>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero hero--centred" data-enter aria-labelledby="hero-h">
+    <div class="wrap"><div class="hero-text">
+      <div class="hero__c">
+        <a class="pill" href="#feed"><span>New: every photo as JSON</span><span class="muted">See the feed</span></a>
+        <h1 id="hero-h">Shared photo board, free with Google</h1>
+        <p class="hero__lead">Post a photo up to 20 MB with a title and one of eight categories. Anyone can browse the wall; signing in lets you post, like pins and follow people.</p>
+        <div class="btn-row"><a class="btn btn--primary" href="/wall">See the wall</a><a class="btn btn--secondary" href="/photos">Read the JSON feed</a></div>
+      </div>
+      <div class="hero__window" data-fx="painterly-landscape" data-fx-seed="7" role="img" aria-label="Photo Wall showing the Style category, with a pin being saved">
+        <div class="ly-piece pw-win" aria-hidden="true">
+          <div class="pw-win__bar"><span class="pw-win__dots"><i></i><i></i><i></i></span><span class="pw-win__brand"><svg width="16" height="16" viewBox="0 0 32 32"><rect x="2" y="2" width="12" height="17" rx="4" fill="#1f2de6"/><rect x="18" y="2" width="12" height="11" rx="4" fill="#0b0c0e"/><rect x="2" y="23" width="12" height="7" rx="3.5" fill="#0b0c0e"/><rect x="18" y="17" width="12" height="13" rx="4" fill="#8f96f2"/></svg><span>Photo Wall</span></span><span class="pw-win__search">Search pins, people, topics</span></div>
+          <div class="pw-win__chips"><span>All</span><span>Food</span><span>Travel</span><span>Art</span><span>Outdoors</span><span>Garden</span><span class="is-on">Style</span><span>Saved</span></div>
+          <div class="pw-win__body" data-ly-steps="900">
+            <div class="pw-win__wall">
+              <figure><img src="landing/aiko-trench-240.webp" alt="" width="240" height="360" loading="lazy"><span class="pw-win__save" data-step>Saved</span><figcaption>Camel trench, thrifted twice</figcaption></figure>
+              <figure><img src="landing/priya-gown-240.webp" alt="" width="240" height="360" loading="lazy"><figcaption>Emerald evening</figcaption></figure>
+              <figure><img src="landing/kwame-suit-240.webp" alt="" width="240" height="360" loading="lazy"><figcaption>Rust three-piece, kente lining</figcaption></figure>
+              <figure><img src="landing/zuri-gown-240.webp" alt="" width="240" height="360" loading="lazy"><figcaption>Ruby red for the gala</figcaption></figure>
+              <figure><img src="landing/hana-gown-240.webp" alt="" width="240" height="360" loading="lazy"><figcaption>Midnight navy</figcaption></figure>
+            </div>
+            <span class="pw-win__toast" data-step>Saved to your pins</span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <section class="section" id="wall" aria-labelledby="wall-h">
+    <div class="wrap">
+      <div class="grid grid--top">
+        <h2 class="span-5" id="wall-h">Each photo opens with its maker</h2>
+        <p class="span-6 start-7">A pin opens beside the list with its maker, their bio and a Follow button, and more from the same category under it. <a class="link" href="#social">See likes and follows</a></p>
+      </div>
+      <div class="ui app fill" role="img" aria-label="The list of pins beside an open pin by Kwame Mensah, a rust three-piece suit" data-ui-pause-host>
+        <div class="app__pane app__pane--list" data-ui-loop>
+          <div class="ui ui-panel ui-win" data-ui="window" data-open="New" data-work="Saving" data-done="Saved">
+            <div class="ui-win__bar">
+              <span class="ui-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="ui-win__crumb"><svg class="ui-brand" aria-hidden="true" viewBox="0 0 32 32"><rect x="2" y="2" width="12" height="17" rx="4" fill="currentColor"/><rect x="18" y="2" width="12" height="11" rx="4" fill="currentColor"/><rect x="2" y="23" width="12" height="7" rx="3.5" fill="currentColor"/><rect x="18" y="17" width="12" height="13" rx="4" fill="currentColor"/></svg>Photo Wall <i>/</i> <b>All</b></span>
+              <span class="ui-spacer"></span>
+              <span class="ui-win__search" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><span class="ui-win__ph">Search</span><span class="ui-kbd">/</span></span>
+            </div>
+            <div class="ui-win__body">
+              <nav class="ui-win__side" aria-hidden="true">
+                <span class="ui-win__nav is-on"><svg class="ui-icon" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="4.5" height="6" rx="1"/><rect x="9" y="2.5" width="4.5" height="4" rx="1"/><rect x="2.5" y="10.5" width="4.5" height="3" rx="1"/><rect x="9" y="8.5" width="4.5" height="5" rx="1"/></svg>All<em>10</em></span>
+                <span class="ui-win__nav"><span class="ui-win__hash">#</span>Style<em>6</em></span>
+                <span class="ui-win__nav"><span class="ui-win__hash">#</span>Garden<em>1</em></span>
+                <span class="ui-win__nav"><span class="ui-win__hash">#</span>Art<em>1</em></span>
+                <span class="ui-win__nav"><span class="ui-win__hash">#</span>Outdoors<em>1</em></span>
+                <span class="ui-win__label">Yours</span>
+                <span class="ui-win__nav"><svg class="ui-icon" viewBox="0 0 16 16"><path d="M4.5 2.5h7v11l-3.5-2.5-3.5 2.5z"/></svg>Saved</span>
+                <span class="ui-win__nav"><svg class="ui-icon" viewBox="0 0 16 16"><circle cx="8" cy="6" r="2.5"/><path d="M3.5 13.5c.6-2.3 2.4-3.5 4.5-3.5s3.9 1.2 4.5 3.5"/></svg>Mine</span>
+              </nav>
+              <div class="ui-win__main">
+                <div class="ui-win__cols" aria-hidden="true"><span>Posted by</span><span>Pin</span><span>Status</span><span>Label</span></div>
+                <ul class="ui-win__rows">
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="2">KM</span><span class="ui-win__who">Kwame Mensah</span><span class="ui-win__sub">Rust three-piece · Style</span><span class="ui-win__st is-done" data-st>Saved</span><span class="ui-win__age">AI</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="4">AT</span><span class="ui-win__who">Aiko Tanaka</span><span class="ui-win__sub">Camel trench · Style</span><span class="ui-win__st" data-st>New</span><span class="ui-win__age">AI</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="1">PN</span><span class="ui-win__who">Priya Nair</span><span class="ui-win__sub">Emerald evening · Style</span><span class="ui-win__st" data-st>New</span><span class="ui-win__age">AI</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="3">EN</span><span class="ui-win__who">Elena Novak</span><span class="ui-win__sub">Sunday morning · Garden</span><span class="ui-win__st" data-st>New</span><span class="ui-win__age">Stock</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="5">ZA</span><span class="ui-win__who">Zuri Adeyemi</span><span class="ui-win__sub">Ruby red for the gala · Style</span><span class="ui-win__st" data-st>New</span><span class="ui-win__age">AI</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="2">MH</span><span class="ui-win__who">Margaret Hale</span><span class="ui-win__sub">My own portrait · Art</span><span class="ui-win__st is-done" data-st>Saved</span><span class="ui-win__age">Stock</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="4">HS</span><span class="ui-win__who">Hana Seo</span><span class="ui-win__sub">Midnight navy · Style</span><span class="ui-win__st" data-st>New</span><span class="ui-win__age">AI</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="1">KB</span><span class="ui-win__who">Katrin Berg</span><span class="ui-win__sub">Lunch break in the park · Outdoors</span><span class="ui-win__st" data-st>New</span><span class="ui-win__age">Stock</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="3">LM</span><span class="ui-win__who">Lucía Moreno</span><span class="ui-win__sub">The little black gown · Style</span><span class="ui-win__st" data-st>New</span><span class="ui-win__age">AI</span></li>
+                  <li class="ui-win__row" data-row><span class="ui-avatar" data-tone="5">GT</span><span class="ui-win__who">Grace Thompson</span><span class="ui-win__sub">Champagne for our anniversary · Style</span><span class="ui-win__st" data-st>New</span><span class="ui-win__age">AI</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="app__pane app__pane--open">
+          <div class="pw-pin" aria-hidden="true">
+            <div class="pw-pin__img"><img src="landing/kwame-suit-640.webp" alt="" width="640" height="960" loading="lazy"></div>
+            <div class="pw-pin__info">
+              <div class="pw-pin__top"><span class="pw-pin__chip">Style</span><span class="pw-pin__heart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>0</span></div>
+              <p class="pw-pin__title">Rust three-piece, kente lining</p>
+              <p>Cut this one for my cousin's wedding, then kept the pattern for myself.</p>
+              <div class="pw-pin__who"><img src="landing/av-kwame-72.webp" alt="" width="72" height="72" loading="lazy"><b>Kwame Mensah</b><small>0 followers</small><span class="pw-pin__follow">Follow</span></div>
+              <p class="t-small pw-pin__bio" style="margin:0;color:var(--u-muted)">Menswear tailor. Every suit gets one hidden pop of colour.</p>
+              <span class="pw-pin__badge">AI-generated sample</span>
+              <p class="pw-pin__more">More in Style</p>
+              <div class="pw-pin__rel"><img src="landing/aiko-trench-240.webp" alt="" width="240" height="360" loading="lazy"><img src="landing/zuri-gown-240.webp" alt="" width="240" height="360" loading="lazy"><img src="landing/priya-gown-240.webp" alt="" width="240" height="360" loading="lazy"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="post" aria-labelledby="post-h">
+    <div class="wrap">
+      <div class="grid grid--top fill">
+        <div class="span-5 stack-6">
+          <h2 id="post-h">Posts a photo in two steps</h2>
+          <p class="t-lead">Drop in a PNG, JPG, GIF or WebP up to 20 MB. Add a title, a line about it and a category, then press Publish.</p>
+          <p>You can edit or delete your own pins at any time. Admins can take down any pin, photo and all.</p>
+          <a class="link" href="#faq">Read the questions</a>
+        </div>
+        <div class="frame frame--split frame--fill span-6 start-7">
+          <div class="stage stage--fade-br">
+            <div class="at-corner to-edge" style="--ax:56px;--ay:56px;--w:680px">
+              <div class="ui pw-post" role="img" aria-label="The Create pin form with a photograph of a camel trench coat dropped in and its title filled">
+                <div class="pw-post__drop"><img src="landing/aiko-trench-480.webp" srcset="landing/aiko-trench-240.webp 240w, landing/aiko-trench-480.webp 480w" sizes="(max-width: 639px) 130px, 260px" alt="" width="480" height="720" loading="lazy"></div>
+                <div class="pw-post__fields">
+                  <p class="pw-post__h">Create pin</p>
+                  <span class="pw-post__l">Title</span><span class="pw-post__f">Camel trench, thrifted twice</span>
+                  <span class="pw-post__l">Description</span><span class="pw-post__f pw-post__f--area">Found this trench in a Kyoto flea market…</span>
+                  <span class="pw-post__l">Category</span><span class="pw-post__f">Style</span>
+                  <span class="pw-post__btn">Publish</span>
+                  <span class="pw-post__hint">PNG, JPG, GIF or WebP, up to 20 MB</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section statement" id="categories" aria-labelledby="categories-h">
+    <div class="wrap stack-6">
+      <h2 class="mo-lt__type" id="categories-h" data-moment="liquid-type" data-moment-opts='{"strength": 1}'>Every photo lands on one wall</h2>
+      <p class="t-lead measure">Newest first, in eight categories: food, travel, art, outdoors, music, books, garden and style.</p>
+      <div class="grid pw-strip">
+        <figure class="span-3"><img src="landing/grace-gown-sq640.webp" srcset="landing/grace-gown-sq330.webp 330w, landing/grace-gown-sq640.webp 640w" sizes="(max-width: 639px) 165px, 302px" alt="A woman in a sparkling champagne gown" width="640" height="640" loading="lazy" data-source="client" data-subject="a sample pin, Style"></figure>
+        <figure class="span-3"><img src="landing/elena-portrait-sq640.webp" srcset="landing/elena-portrait-sq330.webp 330w, landing/elena-portrait-sq640.webp 640w" sizes="(max-width: 639px) 165px, 302px" alt="A woman smiling at home beside a houseplant" width="640" height="640" loading="lazy" data-source="client" data-subject="a sample pin, Garden"></figure>
+        <figure class="span-3"><img src="landing/margaret-portrait-sq640.webp" srcset="landing/margaret-portrait-sq330.webp 330w, landing/margaret-portrait-sq640.webp 640w" sizes="(max-width: 639px) 165px, 302px" alt="A grey-haired woman sitting for a portrait" width="640" height="640" loading="lazy" data-source="client" data-subject="a sample pin, Art"></figure>
+        <figure class="span-3"><img src="landing/katrin-portrait-sq640.webp" srcset="landing/katrin-portrait-sq330.webp 330w, landing/katrin-portrait-sq640.webp 640w" sizes="(max-width: 639px) 165px, 302px" alt="A woman with folded arms on a park path" width="640" height="640" loading="lazy" data-source="client" data-subject="a sample pin, Outdoors"></figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="section g2" id="social" aria-labelledby="social-h">
+    <div class="wrap">
+      <div class="group">
+        <div class="section-head">
+          <h2 id="social-h">Likes, follows and saved photos. <span class="muted">Each one is a tap away.</span></h2>
+        </div>
+        <div class="grid">
+          <article class="card card--row card--open span-6">
+            <h3>Likes photos and follows people</h3>
+            <p>The heart count goes up for everyone at once. Follow a maker and their count shows on every pin they post.</p>
+            <div class="panel">
+              <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:380px;--ax:32px;--ay:calc(100% - 180px);--ay-sm:calc(100% - 180px)" data-ui-loop>
+                <div class="ui ui-notify" data-ui="notify">
+                  <ul class="ui-notify__list" data-notify-list>
+                    <li class="ui-note"><span class="ui-avatar ui-note__av" data-tone="5">ZA</span><span class="ui-note__text"><span class="ui-note__title">Zuri Adeyemi liked your pin<time>now</time></span><span class="ui-note__body">Camel trench, thrifted twice</span></span><span class="ui-btn ui-btn--sm ui-note__btn">Open</span></li>
+                    <li class="ui-note"><span class="ui-avatar ui-note__av" data-tone="2">KM</span><span class="ui-note__text"><span class="ui-note__title">Kwame Mensah followed you<time>4m</time></span><span class="ui-note__body">Menswear tailor</span></span></li>
+                    <li class="ui-note"><span class="ui-avatar ui-note__av" data-tone="1">PN</span><span class="ui-note__text"><span class="ui-note__title">Priya Nair liked your pin<time>12m</time></span><span class="ui-note__body">Camel trench, thrifted twice</span></span></li>
+                  </ul>
+                </div>
+              </div></div>
+            </div>
+          </article>
+          <article class="card card--row card--open span-6">
+            <h3>Searches photos, people and topics</h3>
+            <p>One box looks through titles, lines, makers and categories, and the wall narrows as you type.</p>
+            <div class="panel">
+              <div class="stage stage--fade-b"><div class="at-rise fit to-edge" style="--fit-max:380px;--ax:max(24px, 50% - 190px);--ay:56px;--ay-sm:56px">
+                <div class="ui ui-panel ui-search" data-ui="search">
+                  <div class="ui-search__field">
+                    <svg class="ui-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg>
+                    <span class="ui-search__q"><span data-search-q>trench</span><i class="ui-search__caret"></i></span>
+                    <kbd class="ui-search__kbd">/</kbd>
+                  </div>
+                  <div class="ui-search__group">Pins</div>
+                  <ul class="ui-search__list" data-search-list>
+                    <li class="ui-search__row is-sel"><span class="ui-search__ico"><svg class="ui-icon" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" rx="2"/><path d="m3 11 3-3 2.5 2.5L11 8l2.5 2.5"/></svg></span><span class="ui-search__t">Camel <b>trench</b>, thrifted twice</span><span class="ui-search__m">Style</span></li>
+                    <li class="ui-search__row"><span class="ui-search__ico"><svg class="ui-icon" viewBox="0 0 16 16"><circle cx="8" cy="6" r="2.5"/><path d="M3.5 13.5c.6-2.3 2.4-3.5 4.5-3.5s3.9 1.2 4.5 3.5"/></svg></span><span class="ui-search__t">Aiko Tanaka</span><span class="ui-search__m">Person</span></li>
+                    <li class="ui-search__row"><span class="ui-search__ico"><svg class="ui-icon" viewBox="0 0 16 16"><path d="M3 3h4l6 6-4 4-6-6z"/><circle cx="5.5" cy="5.5" r=".8"/></svg></span><span class="ui-search__t">Style</span><span class="ui-search__m">Topic</span></li>
+                  </ul>
+                  <div class="ui-search__foot"><span><kbd>&uarr;</kbd><kbd>&darr;</kbd> to move</span><span><kbd>Enter</kbd> to open</span></div>
+                </div>
+              </div></div>
+            </div>
+          </article>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="card card--row card--open span-6">
+          <h3>Keeps saved photos in this browser</h3>
+          <p>Press Save on any pin to keep it under Saved. They stay in the browser you used, so a new phone starts empty.</p>
+          <div class="panel">
+            <div class="stage stage--fade-b"><div class="at-rise fit" style="--fit-max:340px;--ax:max(24px, 50% - 170px);--ay:40px;--ay-sm:24px">
+              <div class="ui ui-panel ui-checks" data-ui="checklist">
+                <div class="ui-checks__head"><div class="ui-title">Saved pins</div><span class="ui-spacer"></span><div class="ui-meta" data-checks-count>2 of 5</div></div>
+                <div class="ui-checks__bar"><i data-checks-bar style="--k:0.4"></i></div>
+                <ul class="ui-checks__list">
+                  <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Camel trench, thrifted twice</span></li>
+                  <li class="ui-check is-done"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Rust three-piece, kente lining</span></li>
+                  <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Sunday morning, no plans</span></li>
+                  <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Lunch break in the park</span></li>
+                  <li class="ui-check"><span class="ui-check__box"><svg viewBox="0 0 16 16"><path d="m4.5 8.2 2.3 2.3 4.7-5"/></svg></span><span class="ui-check__label">Midnight navy</span></li>
+                </ul>
+              </div>
+            </div></div>
+          </div>
+        </article>
+        <article class="card card--row card--open span-6">
+          <h3>Signs you in with Google</h3>
+          <p>A Google account is the whole sign-up. Photo Wall keeps only a hash of your email, never the address.</p>
+          <div class="panel">
+            <div class="dg" data-dg-still data-diagram='{"layout":"hub","alt":"Photo Wall signs people in with Google, stores photographs in Vercel Blob and keeps pins, likes and follows in Supabase.","center":{"label":"Photo Wall","icon":"ui:image"},"spokes":[{"label":"Google sign-in","icon":"logos:google-icon"},{"label":"Vercel Blob","icon":"vercel"},{"label":"Supabase","icon":"supabase"}]}'></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="feed" aria-labelledby="feed-h">
+    <div class="wrap">
+      <div class="grid grid--top fill">
+        <div class="span-5 stack-6">
+          <h2 id="feed-h">Every photo as JSON at /photos.json</h2>
+          <p class="t-lead">The feed lists each pin with its image link, maker, category and like count. It is the same for everyone, and other sites may read it.</p>
+          <p>No emails, user ids or saved pins go into it.</p>
+          <a class="link" href="/photos">Read the JSON feed</a>
+        </div>
+        <div class="frame frame--split frame--fill span-6 start-7">
+          <div class="stage stage--fade-br">
+            <div class="at-rise to-edge" style="--w:440px;--ax:max(24px, 50% - 220px);--ay:56px" data-ui-loop>
+              <div class="ui ui-panel ui-code" data-ui="code" role="img" aria-label="The first record of photos.json: Emerald evening by Priya Nair">
+                <div class="ui-code__tabs">
+                  <span class="ui-code__tab is-on"><i class="ui-code__lang">{ }</i>photos.json</span>
+                  <span class="ui-spacer"></span>
+                  <span class="ui-chip ui-chip--plain ui-code__chip" data-code-chip>10 photos</span>
+                </div>
+                <pre class="ui-code__pre"><code><span class="ui-code__ln" data-n="5">{</span>
+<span class="ui-code__ln" data-n="6">  <span class="f">"title"</span>: <span class="k">"Emerald evening"</span>,</span>
+<span class="ui-code__ln" data-n="7">  <span class="f">"category"</span>: <span class="k">"Style"</span>,</span>
+<span class="ui-code__ln is-mark" data-n="8">  <span class="f">"image"</span>: <span class="k">"…/priya-gown.webp"</span>,</span>
+<span class="ui-code__ln" data-n="9" data-note="Where the photo came from.">  <span class="f">"source"</span>: <span class="k">"ai-generated"</span>,</span>
+<span class="ui-code__ln" data-n="10">  <span class="f">"author"</span>: {</span>
+<span class="ui-code__ln" data-n="11">    <span class="f">"name"</span>: <span class="k">"Priya Nair"</span></span>
+<span class="ui-code__ln" data-n="12">  },</span>
+<span class="ui-code__ln" data-n="13" data-note="Likes from every visitor.">  <span class="f">"likes"</span>: <span class="n">0</span></span>
+<span class="ui-code__ln" data-n="14">}</span></code></pre>
+                <div class="ui-code__hint" data-code-hint><span class="ui-dot"></span><span data-code-text>Full image links, ready to load.</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq" aria-labelledby="faq-h">
+    <div class="wrap">
+      <div class="grid grid--top fill">
+        <div class="span-5 stack-4">
+          <h2 id="faq-h">Questions</h2>
+          <p class="muted">About cost, privacy, files and the people already on the wall.</p>
+          <ul class="pw-faces"><li><img src="landing/av-priya-128.webp" alt="Priya Nair" width="128" height="128" loading="lazy" data-source="client" data-subject="sample maker"></li><li><img src="landing/av-zuri-128.webp" alt="Zuri Adeyemi" width="128" height="128" loading="lazy" data-source="client" data-subject="sample maker"></li><li><img src="landing/av-hana-128.webp" alt="Hana Seo" width="128" height="128" loading="lazy" data-source="client" data-subject="sample maker"></li><li><img src="landing/av-lucia-128.webp" alt="Lucía Moreno" width="128" height="128" loading="lazy" data-source="client" data-subject="sample maker"></li><li><img src="landing/av-grace-128.webp" alt="Grace Thompson" width="128" height="128" loading="lazy" data-source="client" data-subject="sample maker"></li><li><img src="landing/av-elena-128.webp" alt="Elena Novak" width="128" height="128" loading="lazy" data-source="client" data-subject="sample maker"></li><li><img src="landing/av-margaret-128.webp" alt="Margaret Hale" width="128" height="128" loading="lazy" data-source="client" data-subject="sample maker"></li><li><img src="landing/av-katrin-128.webp" alt="Katrin Berg" width="128" height="128" loading="lazy" data-source="client" data-subject="sample maker"></li><li><img src="landing/av-aiko-128.webp" alt="Aiko Tanaka" width="128" height="128" loading="lazy" data-source="client" data-subject="sample maker"></li><li><img src="landing/av-kwame-128.webp" alt="Kwame Mensah" width="128" height="128" loading="lazy" data-source="client" data-subject="sample maker"></li></ul>
+        </div>
+        <div class="faq span-6 start-7">
+          <div class="faq__item"><h3>Does Photo Wall cost anything?</h3><p>No. Browsing, posting, likes and follows are free.</p></div>
+          <div class="faq__item"><h3>Who can see the photos I post?</h3><p>Anyone. Every photo gets a public link.</p></div>
+          <div class="faq__item pw-desk"><h3>Can I change or delete a photo?</h3><p>Yes. Open your pin to edit it, or delete it with its photo.</p></div>
+          <div class="faq__item"><h3>Does Photo Wall store my email?</h3><p>Only a hash of it, never the address itself.</p></div>
+          <div class="faq__item"><h3>Why are my saved photos missing on my phone?</h3><p>Saved photos stay in the browser you saved them in.</p></div>
+          <div class="faq__item pw-desk"><h3>Who posted the photos on the wall now?</h3><p>The ten sample makers here, each pin marked AI or Stock.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer closing footer--dark ground-inverse" id="contact" aria-labelledby="close-h">
+  <div class="wrap">
+    <div class="closing__cta close--type">
+      <div class="section-head">
+        <h2 id="close-h">See every photo on the wall</h2>
+        <p class="t-small muted">Free to browse. Post your own with a Google account.</p>
+      </div>
+      <a class="btn btn--primary btn--xl btn--wide" href="/wall">See the wall<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+    </div>
+    <div class="closing__links">
+      <div class="grid">
+        <div class="span-4 stack-4">
+          <a class="nav__logo" href="#top">Photo Wall</a>
+          <p class="footer__lede">A shared photo board. Browse for free; post with a Google account.</p>
+        </div>
+        <div class="span-2 start-7 footer__col"><h3>Wall</h3><ul><li><a href="#wall">Pins</a></li><li><a href="#post">Posting</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>People</h3><ul><li><a href="#social">Likes and follows</a></li><li><a href="#faq">Questions</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Data</h3><ul><li><a href="#feed">Feed</a></li><li><a href="/photos.json">photos.json</a></li></ul></div>
+      </div>
+      <div class="footer__legal">
+        <span>&copy; 2026 Photo Wall</span>
+        <div class="socials"></div>
+        <span class="credits">Stock photographs via Adobe Stock. Product names and logos are trademarks of their owners.</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="assets/system.js"></script>
+<script type="module" src="assets/motion/motion.js"></script>
+<script type="module" src="assets/layout/layout.js"></script>
+<script type="module" src="assets/diagrams/mount.js"></script>
+</body>
+</html>

@@ -10,3 +10,5 @@ next-env.d.ts
 
 characters/out
 .impeccable/hook.cache.json
+.taste-skill
+public/.taste-skill
