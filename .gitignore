@@ -9,3 +9,4 @@ next-env.d.ts
 .claude
 
 characters/out
+.impeccable/hook.cache.json
